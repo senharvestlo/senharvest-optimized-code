@@ -13,9 +13,9 @@ function CookiePolicy({ t, lang }) {
     const saved = localStorage.getItem('cookiePreferences');
     if (saved) {
       const preferences = JSON.parse(saved);
-      setCookiePreferences({ ...cookiePreferences, ...preferences });
+      setCookiePreferences(prevPrefs => ({ ...prevPrefs, ...preferences }));
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Save preferences to localStorage
   const savePreferences = (prefs) => {
