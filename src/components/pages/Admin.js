@@ -1,0 +1,681 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  saveProformaToFirebase, 
+  getAllProformasFromFirebase 
+} from '../../services/firebaseService';
+import Button from '../ui/Button';
+import useLang from '../../hooks/useLang';
+
+const Admin = ({ onAccess }) => {
+  const { lang } = useLang();
+  const [activeTab, setActiveTab] = useState('proforma');
+  const [invoiceData, setInvoiceData] = useState({
+    company: {
+      name: 'SenHarvest',
+      address: 'Dakar, Sénégal',
+      phone: '+221 33 123 45 67',
+      email: 'contact@senharvest.com'
+    },
+    client: {
+      name: '',
+      address: '',
+      phone: '',
+      email: ''
+    },
+    proforma: {
+      number: '',
+      date: new Date().toISOString().split('T')[0],
+      validity: '',
+      paymentTerms: '',
+      deliveryTerms: '',
+      paymentMethod: '',
+      departurePort: '',
+      validityPeriod: '',
+      notes: ''
+    },
+    products: [
+      { id: 1, description: '', quantity: '', unit: 'MT', unitPrice: '', total: '' }
+    ]
+  });
+
+  const loadData = useCallback(async () => {
+    try {
+      console.log('Loading proforma data from Firebase...');
+      
+      // Load Proforma data from Firebase
+      const proformas = await getAllProformasFromFirebase();
+      if (proformas.length > 0) {
+        const proforma = proformas[0];
+        // Vérifier que la proforma a la structure attendue
+        if (proforma && proforma.company && proforma.client && proforma.proforma) {
+          setInvoiceData(proforma);
+        } else {
+          console.log('Proforma data structure invalid, using default');
+        }
+      }
+    } catch (error) {
+      console.error('Error loading data from Firebase:', error);
+      // Fallback to localStorage if Firebase fails
+      loadDataFromLocalStorage();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (onAccess) {
+      onAccess();
+      loadData();
+    }
+  }, [onAccess, loadData]);
+
+  const loadDataFromLocalStorage = () => {
+    // Load Proforma data
+    const savedProforma = localStorage.getItem('proformaData');
+    if (savedProforma) {
+      try {
+        const parsedData = JSON.parse(savedProforma);
+        // Vérifier que les données ont la structure attendue
+        if (parsedData && parsedData.company && parsedData.client && parsedData.proforma) {
+          setInvoiceData(parsedData);
+        } else {
+          console.log('LocalStorage data structure invalid, using default');
+        }
+      } catch (error) {
+        console.error('Error parsing localStorage data:', error);
+      }
+    }
+  };
+
+  const saveData = async () => {
+    try {
+      // Save to Firebase
+      await saveProformaToFirebase(invoiceData);
+      console.log('Proforma saved to Firebase successfully');
+      
+      // Save to localStorage as backup
+      localStorage.setItem('proformaData', JSON.stringify(invoiceData));
+      
+      alert(lang === 'fr' ? 'Données sauvegardées avec succès !' : 'Data saved successfully!');
+    } catch (error) {
+      console.error('Error saving data:', error);
+      alert(lang === 'fr' ? 'Erreur lors de la sauvegarde' : 'Error saving data');
+    }
+  };
+
+  const addProduct = () => {
+    const newProduct = {
+      id: Date.now(),
+      description: '',
+      quantity: '',
+      unit: 'MT',
+      unitPrice: '',
+      total: ''
+    };
+    setInvoiceData(prev => ({
+      ...prev,
+      products: [...prev.products, newProduct]
+    }));
+  };
+
+  const removeProduct = (id) => {
+    setInvoiceData(prev => ({
+      ...prev,
+      products: prev.products.filter(product => product.id !== id)
+    }));
+  };
+
+  const updateProduct = (id, field, value) => {
+    setInvoiceData(prev => ({
+      ...prev,
+      products: prev.products.map(product =>
+        product.id === id ? { ...product, [field]: value } : product
+      )
+    }));
+  };
+
+  const calculateTotal = () => {
+    return invoiceData.products.reduce((sum, product) => {
+      const quantity = parseFloat(product.quantity) || 0;
+      const unitPrice = parseFloat(product.unitPrice) || 0;
+      return sum + (quantity * unitPrice);
+    }, 0);
+  };
+
+  const generateProforma = () => {
+    const total = calculateTotal();
+    const proformaContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Proforma Invoice - ${invoiceData.proforma.number}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .company-info { margin-bottom: 20px; }
+          .client-info { margin-bottom: 20px; }
+          .proforma-details { margin-bottom: 30px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+          .total { text-align: right; font-weight: bold; }
+          .notes { margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>PROFORMA INVOICE</h1>
+          <h2>${invoiceData.company.name}</h2>
+        </div>
+        
+        <div class="company-info">
+          <h3>From:</h3>
+          <p>${invoiceData.company.name}<br>
+          ${invoiceData.company.address}<br>
+          Phone: ${invoiceData.company.phone}<br>
+          Email: ${invoiceData.company.email}</p>
+        </div>
+        
+        <div class="client-info">
+          <h3>To:</h3>
+          <p>${invoiceData.client.name}<br>
+          ${invoiceData.client.address}<br>
+          Phone: ${invoiceData.client.phone}<br>
+          Email: ${invoiceData.client.email}</p>
+        </div>
+        
+        <div class="proforma-details">
+          <p><strong>Proforma Number:</strong> ${invoiceData.proforma.number}</p>
+          <p><strong>Date:</strong> ${invoiceData.proforma.date}</p>
+          <p><strong>Validity:</strong> ${invoiceData.proforma.validity}</p>
+          <p><strong>Payment Terms:</strong> ${invoiceData.proforma.paymentTerms}</p>
+          <p><strong>Payment Method:</strong> ${invoiceData.proforma.paymentMethod}</p>
+          <p><strong>Delivery Terms:</strong> ${invoiceData.proforma.deliveryTerms}</p>
+          <p><strong>Departure Port:</strong> ${invoiceData.proforma.departurePort}</p>
+          <p><strong>Validity Period:</strong> ${invoiceData.proforma.validityPeriod}</p>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Unit</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${invoiceData.products.map(product => `
+              <tr>
+                <td>${product.description}</td>
+                <td>${product.quantity}</td>
+                <td>${product.unit}</td>
+                <td>$${product.unitPrice}</td>
+                <td>$${product.total}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <div class="total">
+          <h3>Total: $${total.toFixed(2)}</h3>
+        </div>
+        
+        <div class="notes">
+          <h3>Notes:</h3>
+          <p>${invoiceData.proforma.notes}</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    const newWindow = window.open('', '_blank');
+    newWindow.document.write(proformaContent);
+    newWindow.document.close();
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-lg">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h1 className="text-2xl font-bold text-gray-900">
+              {lang === 'fr' ? 'Administration' : 'Administration'}
+            </h1>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="border-b border-gray-200">
+            <nav className="-mb-px flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('proforma')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'proforma'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {lang === 'fr' ? 'Proforma' : 'Proforma'}
+              </button>
+            </nav>
+          </div>
+
+          {/* Proforma Tab */}
+          {activeTab === 'proforma' && (
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Company Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">
+                    {lang === 'fr' ? 'Informations de l\'entreprise' : 'Company Information'}
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {lang === 'fr' ? 'Nom de l\'entreprise' : 'Company Name'}
+                      </label>
+                      <input
+                        type="text"
+                        value={invoiceData.company?.name || ''}
+                        onChange={(e) => setInvoiceData(prev => ({
+                          ...prev,
+                          company: { ...prev.company, name: e.target.value }
+                        }))}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {lang === 'fr' ? 'Adresse' : 'Address'}
+                      </label>
+                      <textarea
+                        value={invoiceData.company?.address || ''}
+                        onChange={(e) => setInvoiceData(prev => ({
+                          ...prev,
+                          company: { ...prev.company, address: e.target.value }
+                        }))}
+                        rows={3}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          {lang === 'fr' ? 'Téléphone' : 'Phone'}
+                        </label>
+                        <input
+                          type="text"
+                          value={invoiceData.company?.phone || ''}
+                          onChange={(e) => setInvoiceData(prev => ({
+                            ...prev,
+                            company: { ...prev.company, phone: e.target.value }
+                          }))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          {lang === 'fr' ? 'Email' : 'Email'}
+                        </label>
+                        <input
+                          type="email"
+                          value={invoiceData.company?.email || ''}
+                          onChange={(e) => setInvoiceData(prev => ({
+                            ...prev,
+                            company: { ...prev.company, email: e.target.value }
+                          }))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Client Information */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-4">
+                    {lang === 'fr' ? 'Informations du client' : 'Client Information'}
+                  </h3>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {lang === 'fr' ? 'Nom du client' : 'Client Name'}
+                      </label>
+                      <input
+                        type="text"
+                        value={invoiceData.client?.name || ''}
+                        onChange={(e) => setInvoiceData(prev => ({
+                          ...prev,
+                          client: { ...prev.client, name: e.target.value }
+                        }))}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {lang === 'fr' ? 'Adresse' : 'Address'}
+                      </label>
+                      <textarea
+                        value={invoiceData.client?.address || ''}
+                        onChange={(e) => setInvoiceData(prev => ({
+                          ...prev,
+                          client: { ...prev.client, address: e.target.value }
+                        }))}
+                        rows={3}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          {lang === 'fr' ? 'Téléphone' : 'Phone'}
+                        </label>
+                        <input
+                          type="text"
+                          value={invoiceData.client?.phone || ''}
+                          onChange={(e) => setInvoiceData(prev => ({
+                            ...prev,
+                            client: { ...prev.client, phone: e.target.value }
+                          }))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          {lang === 'fr' ? 'Email' : 'Email'}
+                        </label>
+                        <input
+                          type="email"
+                          value={invoiceData.client?.email || ''}
+                          onChange={(e) => setInvoiceData(prev => ({
+                            ...prev,
+                            client: { ...prev.client, email: e.target.value }
+                          }))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Proforma Details */}
+              <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold mb-4">
+                  {lang === 'fr' ? 'Détails de la proforma' : 'Proforma Details'}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Numéro de proforma' : 'Proforma Number'}
+                    </label>
+                    <input
+                      type="text"
+                        value={invoiceData.proforma?.number || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, number: e.target.value }
+                      }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Date' : 'Date'}
+                    </label>
+                    <input
+                      type="date"
+                        value={invoiceData.proforma?.date || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, date: e.target.value }
+                      }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Validité' : 'Validity'}
+                    </label>
+                    <input
+                      type="text"
+                        value={invoiceData.proforma?.validity || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, validity: e.target.value }
+                      }))}
+                      placeholder={lang === 'fr' ? 'Ex: 30 jours' : 'Ex: 30 days'}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Conditions de paiement' : 'Payment Terms'}
+                    </label>
+                    <input
+                      type="text"
+                        value={invoiceData.proforma?.paymentTerms || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, paymentTerms: e.target.value }
+                      }))}
+                      placeholder={lang === 'fr' ? 'Ex: 30% à la commande' : 'Ex: 30% on order'}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Conditions de livraison' : 'Delivery Terms'}
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.proforma?.deliveryTerms || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, deliveryTerms: e.target.value }
+                      }))}
+                      placeholder={lang === 'fr' ? 'Ex: FOB Dakar' : 'Ex: FOB Dakar'}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Mode de paiement' : 'Payment Method'}
+                    </label>
+                    <select
+                      value={invoiceData.proforma?.paymentMethod || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, paymentMethod: e.target.value }
+                      }))}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">{lang === 'fr' ? 'Sélectionner...' : 'Select...'}</option>
+                      <option value="TT">{lang === 'fr' ? 'Virement bancaire (TT)' : 'Bank Transfer (TT)'}</option>
+                      <option value="LC">{lang === 'fr' ? 'Lettre de crédit (LC)' : 'Letter of Credit (LC)'}</option>
+                      <option value="CAD">{lang === 'fr' ? 'Paiement à la livraison (CAD)' : 'Cash on Delivery (CAD)'}</option>
+                      <option value="Advance">{lang === 'fr' ? 'Paiement anticipé' : 'Advance Payment'}</option>
+                      <option value="Other">{lang === 'fr' ? 'Autre' : 'Other'}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Port de départ' : 'Departure Port'}
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.proforma?.departurePort || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, departurePort: e.target.value }
+                      }))}
+                      placeholder={lang === 'fr' ? 'Ex: Port de Dakar' : 'Ex: Dakar Port'}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {lang === 'fr' ? 'Période de validité' : 'Validity Period'}
+                    </label>
+                    <input
+                      type="text"
+                      value={invoiceData.proforma?.validityPeriod || ''}
+                      onChange={(e) => setInvoiceData(prev => ({
+                        ...prev,
+                        proforma: { ...prev.proforma, validityPeriod: e.target.value }
+                      }))}
+                      placeholder={lang === 'fr' ? 'Ex: 30 jours' : 'Ex: 30 days'}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {lang === 'fr' ? 'Notes' : 'Notes'}
+                  </label>
+                  <textarea
+                        value={invoiceData.proforma?.notes || ''}
+                    onChange={(e) => setInvoiceData(prev => ({
+                      ...prev,
+                      proforma: { ...prev.proforma, notes: e.target.value }
+                    }))}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Products */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">
+                    {lang === 'fr' ? 'Produits' : 'Products'}
+                  </h3>
+                  <Button onClick={addProduct} variant="primary">
+                    {lang === 'fr' ? 'Ajouter un produit' : 'Add Product'}
+                  </Button>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Description' : 'Description'}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Quantité' : 'Quantity'}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Unité' : 'Unit'}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Prix unitaire' : 'Unit Price'}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Total' : 'Total'}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {lang === 'fr' ? 'Actions' : 'Actions'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {(invoiceData.products || []).map((product, index) => (
+                        <tr key={product.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="text"
+                              value={product.description}
+                              onChange={(e) => updateProduct(product.id, 'description', e.target.value)}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder={lang === 'fr' ? 'Description du produit' : 'Product description'}
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="number"
+                              value={product.quantity}
+                              onChange={(e) => {
+                                const quantity = e.target.value;
+                                const unitPrice = parseFloat(product.unitPrice) || 0;
+                                const total = (parseFloat(quantity) || 0) * unitPrice;
+                                updateProduct(product.id, 'quantity', quantity);
+                                updateProduct(product.id, 'total', total.toFixed(2));
+                              }}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <select
+                              value={product.unit}
+                              onChange={(e) => updateProduct(product.id, 'unit', e.target.value)}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              <option value="MT">MT</option>
+                              <option value="KG">KG</option>
+                              <option value="LBS">LBS</option>
+                              <option value="TONS">TONS</option>
+                              <option value="PCS">PCS</option>
+                            </select>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={product.unitPrice}
+                              onChange={(e) => {
+                                const unitPrice = e.target.value;
+                                const quantity = parseFloat(product.quantity) || 0;
+                                const total = quantity * (parseFloat(unitPrice) || 0);
+                                updateProduct(product.id, 'unitPrice', unitPrice);
+                                updateProduct(product.id, 'total', total.toFixed(2));
+                              }}
+                              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="0.00"
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-medium text-gray-900">
+                              ${product.total || '0.00'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => removeProduct(product.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              {lang === 'fr' ? 'Supprimer' : 'Remove'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-4 flex justify-end">
+                  <div className="text-lg font-semibold">
+                    {lang === 'fr' ? 'Total: ' : 'Total: '}${calculateTotal().toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-6 flex justify-end space-x-4">
+                <Button onClick={saveData} variant="primary">
+                  {lang === 'fr' ? 'Sauvegarder' : 'Save'}
+                </Button>
+                <Button onClick={generateProforma} variant="secondary">
+                  {lang === 'fr' ? 'Générer Proforma' : 'Generate Proforma'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Admin;
