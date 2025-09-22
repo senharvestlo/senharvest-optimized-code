@@ -13,7 +13,8 @@ import { db } from '../config/firebase';
 
 // Collections Firebase
 const COLLECTIONS = {
-  PROFORMA: 'proforma'
+  PROFORMA: 'proforma',
+  TRADE_DOCS: 'trade_docs'
 };
 
 // ===== PROFORMA FUNCTIONS =====
@@ -77,4 +78,29 @@ export const listenToProformas = (callback) => {
     const proformas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(proformas);
   });
+};
+
+// ===== TRADE DOCS (PDF metadata) =====
+export const saveTradeDocMeta = async (meta) => {
+  // meta: { filename, path, url?, type, number, date, companyName, clientName, currency, total }
+  try {
+    const docRef = await addDoc(collection(db, COLLECTIONS.TRADE_DOCS), {
+      ...meta,
+      createdAt: new Date()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error saving trade doc meta:', error);
+    throw error;
+  }
+};
+
+export const listTradeDocs = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.TRADE_DOCS));
+    return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error('Error listing trade docs:', error);
+    throw error;
+  }
 };

@@ -7,7 +7,8 @@ import Button from '../ui/Button';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
-import { ref as storageRef, uploadBytes } from 'firebase/storage';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { saveTradeDocMeta } from '../../services/firebaseService';
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
@@ -292,15 +293,30 @@ const Admin = ({ onAccess }) => {
       // Trigger browser download
       await generateTradePDF(data);
 
-      // Also get Blob and upload to Firebase Storage for tracking
+      // Optionnel: upload + métadonnées (l'utilisateur peut préférer download local uniquement)
       const { blob, filename } = await generateTradePDFBlob(data);
       const path = `pdfs/${filename}`;
       const fileRef = storageRef(storage, path);
       await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
+      const url = await getDownloadURL(fileRef);
+
+      // Save metadata to Firestore
+      await saveTradeDocMeta({
+        filename,
+        path,
+        url,
+        type: data.type,
+        number: data.number,
+        date: data.date,
+        companyName: data.company?.name || '',
+        clientName: data.client?.name || '',
+        currency: data.currency,
+        total: calculateTotal()
+      });
 
       alert(lang === 'fr' 
-        ? `PDF généré et téléversé: ${path}` 
-        : `PDF generated and uploaded: ${path}`);
+        ? `PDF généré, téléversé et sauvegardé: ${path}` 
+        : `PDF generated, uploaded and saved: ${path}`);
     } catch (err) {
       console.error('PDF generation/upload error:', err);
       alert(lang === 'fr' ? 'Erreur lors de la génération du PDF' : 'Error generating PDF');
