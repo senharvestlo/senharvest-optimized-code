@@ -11,7 +11,6 @@ import SpecsModal from '../products/SpecsModal';
  * Displays product catalog with filtering and inquiry options
  */
 function Products({ t, lang, onOpenForm }) {
-  const [specModalOpen, setSpecModalOpen] = useState(false);
   const [specProduct, setSpecProduct] = useState(null);
   const [specList, setSpecList] = useState([]);
   const [specText, setSpecText] = useState('');
@@ -49,14 +48,13 @@ function Products({ t, lang, onOpenForm }) {
           setSpecList([]);
           setSpecText(String(doc.specs));
         }
-        setSpecModalOpen(true);
+        
         return;
       }
     } catch {}
     const local = getLocalSpecs(product.key);
     setSpecList(local || []);
     setSpecText('');
-    setSpecModalOpen(true);
   };
 
   return (
@@ -129,11 +127,13 @@ function Products({ t, lang, onOpenForm }) {
       </Container>
 
       {/* Specs Modal */}
-      <SpecsModal
-        product={specProduct}
-        specs={specText ? [specText] : specList}
-        onClose={() => setSpecModalOpen(false)}
-      />
+      {specProduct && (
+        <SpecsModal
+          product={specProduct}
+          specs={specText ? [specText] : specList}
+          onClose={() => setSpecProduct(null)}
+        />
+      )}
     </div>
   );
 }

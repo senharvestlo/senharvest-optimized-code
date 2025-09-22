@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../../config/firebase";
 
 export default function AdminLogin({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -9,7 +10,10 @@ export default function AdminLogin({ onLogin }) {
   const login = async (e) => {
     e.preventDefault();
     try {
-      const auth = getAuth();
+      if (!auth) {
+        setErr("Firebase non configuré (auth). Ajoutez vos variables .env et relancez.");
+        return;
+      }
       await signInWithEmailAndPassword(auth, email, pass);
       onLogin();
     } catch (error) {
