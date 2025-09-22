@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
-import { Container, SectionTitle, Badge, Button, Input, Textarea, Select } from '../ui';
+import { Container, SectionTitle, Badge, Button } from '../ui';
 import { getSpecs as getLocalSpecs } from '../../services/productSpecsService';
 import { getProductSpecs as getFirestoreSpecs } from '../../services/firebaseService';
+import SpecsModal from '../products/SpecsModal';
 
 /**
  * Products Page Component
@@ -128,52 +129,11 @@ function Products({ t, lang, onOpenForm }) {
       </Container>
 
       {/* Specs Modal */}
-      {specModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
-            <div className="p-5">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold">
-                  {lang === 'fr' ? 'Spécifications' : 'Specifications'} — {specProduct?.name}
-                </h3>
-                <button
-                  onClick={() => setSpecModalOpen(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-
-              {specText
-                ? (
-                  <div className="text-sm whitespace-pre-line text-gray-700">{specText}</div>
-                ) : specList.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    {lang === 'fr' ? 'Spécifications à venir.' : 'Specifications coming soon.'}
-                  </p>
-                ) : (
-                  <ul className="divide-y">
-                    {specList.map((s, i) => (
-                      <li key={i} className="py-2 text-sm">
-                        <span className="font-medium">{s.label} :</span>{' '}
-                        <span className="text-gray-700">{s.value}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-              <div className="mt-4 text-right">
-                <button
-                  onClick={() => setSpecModalOpen(false)}
-                  className="inline-flex items-center rounded-md border px-4 py-2"
-                >
-                  {lang === 'fr' ? 'Fermer' : 'Close'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SpecsModal
+        product={specProduct}
+        specs={specText ? [specText] : specList}
+        onClose={() => setSpecModalOpen(false)}
+      />
     </div>
   );
 }

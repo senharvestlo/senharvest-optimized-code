@@ -6,6 +6,7 @@ import {
 import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
+import AdminLogin from '../admin/AdminLogin';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
@@ -14,6 +15,7 @@ import { saveTradeDocMeta } from '../../services/firebaseService';
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('proforma');
   const [pdfType, setPdfType] = useState('proforma'); // 'proforma' | 'quotation'
   const [showBankInfo, setShowBankInfo] = useState(true);
@@ -74,9 +76,11 @@ const Admin = ({ onAccess }) => {
   useEffect(() => {
     if (onAccess) {
       onAccess();
-      loadData();
+      if (isAuthenticated) {
+        loadData();
+      }
     }
-  }, [onAccess, loadData]);
+  }, [onAccess, loadData, isAuthenticated]);
 
   const loadDataFromLocalStorage = () => {
     // Load Proforma data
@@ -234,14 +238,31 @@ const Admin = ({ onAccess }) => {
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AdminLogin onLogin={() => setIsAuthenticated(true)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">
               {lang === 'fr' ? 'Administration' : 'Administration'}
             </h1>
+            <Button 
+              onClick={() => setIsAuthenticated(false)} 
+              variant="secondary"
+              className="text-sm"
+            >
+              {lang === 'fr' ? 'Déconnexion' : 'Logout'}
+            </Button>
           </div>
 
           {/* Navigation Tabs */}
