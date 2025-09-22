@@ -13,7 +13,9 @@ export const COMPANY = {
   phoneSN: process.env.REACT_APP_PHONE_SN || "+221776340064", // E.164 preferred
   phoneCA: process.env.REACT_APP_PHONE_CA || "+18193198464",
   email: process.env.REACT_APP_EMAIL || "manager@senharvest.com",
-  whatsApp: process.env.REACT_APP_WHATSAPP || "+221776340064",
+  // Numéro WhatsApp utilisé par le bouton flottant
+  // Changez ici si vous souhaitez pointer vers un autre numéro
+  whatsApp: process.env.REACT_APP_WHATSAPP || "+18193198464",
   addressFR: "USA • Sénégal • Canada",
   addressEN: "USA • Senegal • Canada",
   logoSrc: "/senharvest-logo.png", // Your custom logo
