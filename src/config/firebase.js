@@ -13,18 +13,30 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FB_APP_ID,
 };
 
+// Only initialize when required keys exist to avoid runtime error in dev
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
+export const FIREBASE_READY = requiredKeys.every((k) => Boolean(firebaseConfig[k]));
+
 // Initialize or reuse Firebase app (avoids HMR double init issues)
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+let app = null;
+if (FIREBASE_READY) {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+} else {
+  // eslint-disable-next-line no-console
+  console.warn('[Firebase] Missing configuration (.env). Skipping Firebase init in dev.');
+}
 
 // Export services
-let authInstance;
-try {
-  authInstance = initializeAuth(app, { persistence: browserLocalPersistence });
-} catch (e) {
-  authInstance = getAuth(app);
+let authInstance = null;
+if (app) {
+  try {
+    authInstance = initializeAuth(app, { persistence: browserLocalPersistence });
+  } catch (e) {
+    authInstance = getAuth(app);
+  }
 }
 export const auth = authInstance;
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+export const db = app ? getFirestore(app) : null;
+export const storage = app ? getStorage(app) : null;
 
 export default app;

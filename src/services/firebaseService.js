@@ -19,6 +19,7 @@ const COLLECTIONS = {
 
 // ===== PROFORMA FUNCTIONS =====
 export const saveProformaToFirebase = async (proformaData) => {
+  if (!db) return null;
   try {
     const docRef = await addDoc(collection(db, COLLECTIONS.PROFORMA), {
       ...proformaData,
@@ -33,6 +34,7 @@ export const saveProformaToFirebase = async (proformaData) => {
 };
 
 export const updateProformaInFirebase = async (proformaId, proformaData) => {
+  if (!db) return null;
   try {
     const proformaRef = doc(db, COLLECTIONS.PROFORMA, proformaId);
     await updateDoc(proformaRef, {
@@ -46,6 +48,7 @@ export const updateProformaInFirebase = async (proformaId, proformaData) => {
 };
 
 export const getProformaFromFirebase = async (proformaId) => {
+  if (!db) return null;
   try {
     const proformaRef = doc(db, COLLECTIONS.PROFORMA, proformaId);
     const proformaSnap = await getDoc(proformaRef);
@@ -62,6 +65,7 @@ export const getProformaFromFirebase = async (proformaId) => {
 };
 
 export const getAllProformasFromFirebase = async () => {
+  if (!db) return [];
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.PROFORMA));
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -73,6 +77,7 @@ export const getAllProformasFromFirebase = async () => {
 
 // ===== REAL-TIME LISTENERS =====
 export const listenToProformas = (callback) => {
+  if (!db) return () => {};
   const q = query(collection(db, COLLECTIONS.PROFORMA), orderBy('updatedAt', 'desc'));
   return onSnapshot(q, (querySnapshot) => {
     const proformas = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -82,6 +87,7 @@ export const listenToProformas = (callback) => {
 
 // ===== TRADE DOCS (PDF metadata) =====
 export const saveTradeDocMeta = async (meta) => {
+  if (!db) return null;
   // meta: { filename, path, url?, type, number, date, companyName, clientName, currency, total }
   try {
     const docRef = await addDoc(collection(db, COLLECTIONS.TRADE_DOCS), {
@@ -96,6 +102,7 @@ export const saveTradeDocMeta = async (meta) => {
 };
 
 export const listTradeDocs = async () => {
+  if (!db) return [];
   try {
     const querySnapshot = await getDocs(collection(db, COLLECTIONS.TRADE_DOCS));
     return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
