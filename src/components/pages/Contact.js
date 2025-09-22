@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container, SectionTitle, Input, Select, Textarea, Button } from '../ui';
+import { submitContact } from '../../services/firebaseService';
 // Form utilities moved inline
 const getInitialFormState = () => ({
   name: '',
@@ -24,7 +25,11 @@ const validateForm = (form) => {
 };
 
 const submitToFormspree = async (formData) => {
-  // For now, just use mailto fallback
+  // Try Firestore, fallback mailto
+  try {
+    await submitContact(formData);
+    return { status: 'firestore_ok' };
+  } catch {}
   const subject = encodeURIComponent(`[SenHarvest] ${formData.subject}`);
   const body = encodeURIComponent(`
 Nouvelle demande de contact - SenHarvest Group
