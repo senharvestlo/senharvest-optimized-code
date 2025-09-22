@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
@@ -13,8 +13,8 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FB_APP_ID,
 };
 
-// Initialize Firebase app
-const app = initializeApp(firebaseConfig);
+// Initialize or reuse Firebase app (avoids HMR double init issues)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
 // Export services
 export const auth = getAuth(app);
