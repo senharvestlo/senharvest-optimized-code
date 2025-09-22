@@ -2,7 +2,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button, Input, Textarea, Select } from '../ui';
-import { getSpecs } from '../../services/productSpecsService';
+import { getSpecs as getLocalSpecs } from '../../services/productSpecsService';
+import { getProductSpecs as getFirestoreSpecs } from '../../services/firebaseService';
 
 /**
  * Products Page Component
@@ -12,6 +13,7 @@ function Products({ t, lang, onOpenForm }) {
   const [specModalOpen, setSpecModalOpen] = useState(false);
   const [specProduct, setSpecProduct] = useState(null);
   const [specList, setSpecList] = useState([]);
+  const [specText, setSpecText] = useState('');
 
   const products = useMemo(() =>
     BASE_PRODUCTS.map((p) => ({
@@ -34,10 +36,25 @@ function Products({ t, lang, onOpenForm }) {
     return colorMap[origin] || "green";
   };
 
-  const openSpecs = (product) => {
-    const specs = getSpecs(product.key);
-    setSpecList(specs);
+  const openSpecs = async (product) => {
     setSpecProduct(product);
+    try {
+      const doc = await getFirestoreSpecs(product.key);
+      if (doc && doc.specs) {
+        if (Array.isArray(doc.specs)) {
+          setSpecList(doc.specs);
+          setSpecText('');
+        } else {
+          setSpecList([]);
+          setSpecText(String(doc.specs));
+        }
+        setSpecModalOpen(true);
+        return;
+      }
+    } catch {}
+    const local = getLocalSpecs(product.key);
+    setSpecList(local || []);
+    setSpecText('');
     setSpecModalOpen(true);
   };
 
@@ -127,20 +144,23 @@ function Products({ t, lang, onOpenForm }) {
                 </button>
               </div>
 
-              {specList.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  {lang === 'fr' ? 'Spécifications à venir.' : 'Specifications coming soon.'}
-                </p>
-              ) : (
-                <ul className="divide-y">
-                  {specList.map((s, i) => (
-                    <li key={i} className="py-2 text-sm">
-                      <span className="font-medium">{s.label} :</span>{" "}
-                      <span className="text-gray-700">{s.value}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {specText
+                ? (
+                  <div className="text-sm whitespace-pre-line text-gray-700">{specText}</div>
+                ) : specList.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    {lang === 'fr' ? 'Spécifications à venir.' : 'Specifications coming soon.'}
+                  </p>
+                ) : (
+                  <ul className="divide-y">
+                    {specList.map((s, i) => (
+                      <li key={i} className="py-2 text-sm">
+                        <span className="font-medium">{s.label} :</span>{' '}
+                        <span className="text-gray-700">{s.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
               <div className="mt-4 text-right">
                 <button
