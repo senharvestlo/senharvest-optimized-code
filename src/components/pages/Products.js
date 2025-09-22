@@ -2,25 +2,16 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button, Input, Textarea, Select } from '../ui';
+import { getSpecs } from '../../services/productSpecsService';
 
 /**
  * Products Page Component
  * Displays product catalog with filtering and inquiry options
  */
 function Products({ t, lang, onOpenForm }) {
-  const [showReferenceForm, setShowReferenceForm] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [referenceData, setReferenceData] = useState({
-    supplier: '',
-    buyer: '',
-    specifications: '',
-    quantity: '',
-    quality: '',
-    delivery: '',
-    notes: ''
-  });
-  const [suppliers, setSuppliers] = useState([]);
-  const [buyers, setBuyers] = useState([]);
+  const [specModalOpen, setSpecModalOpen] = useState(false);
+  const [specProduct, setSpecProduct] = useState(null);
+  const [specList, setSpecList] = useState([]);
 
   const products = useMemo(() =>
     BASE_PRODUCTS.map((p) => ({
@@ -31,14 +22,7 @@ function Products({ t, lang, onOpenForm }) {
     [lang]
   );
 
-  useEffect(() => {
-    // Load suppliers and buyers from localStorage
-    const savedSuppliers = localStorage.getItem('sourcing_suppliers');
-    const savedBuyers = localStorage.getItem('sourcing_buyers');
-    
-    if (savedSuppliers) setSuppliers(JSON.parse(savedSuppliers));
-    if (savedBuyers) setBuyers(JSON.parse(savedBuyers));
-  }, []);
+  useEffect(() => {}, []);
 
   const getOriginColor = (origin) => {
     const colorMap = {
@@ -50,59 +34,11 @@ function Products({ t, lang, onOpenForm }) {
     return colorMap[origin] || "green";
   };
 
-  const handleReferenceClick = (product) => {
-    setSelectedProduct(product);
-    setShowReferenceForm(true);
-    setReferenceData({
-      supplier: '',
-      buyer: '',
-      specifications: '',
-      quantity: '',
-      quality: '',
-      delivery: '',
-      notes: ''
-    });
-  };
-
-  const handleReferenceSubmit = (e) => {
-    e.preventDefault();
-    
-    // Save reference data to localStorage
-    const referenceKey = `product_reference_${selectedProduct.key}`;
-    const existingReferences = JSON.parse(localStorage.getItem(referenceKey) || '[]');
-    
-    const newReference = {
-      id: Date.now(),
-      product: selectedProduct,
-      ...referenceData,
-      createdAt: new Date().toISOString()
-    };
-    
-    existingReferences.push(newReference);
-    localStorage.setItem(referenceKey, JSON.stringify(existingReferences));
-    
-    // Reset form
-    setShowReferenceForm(false);
-    setSelectedProduct(null);
-    setReferenceData({
-      supplier: '',
-      buyer: '',
-      specifications: '',
-      quantity: '',
-      quality: '',
-      delivery: '',
-      notes: ''
-    });
-    
-    alert(lang === 'fr' ? 'Référence ajoutée avec succès !' : 'Reference added successfully!');
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setReferenceData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const openSpecs = (product) => {
+    const specs = getSpecs(product.key);
+    setSpecList(specs);
+    setSpecProduct(product);
+    setSpecModalOpen(true);
   };
 
   return (
@@ -163,9 +99,9 @@ function Products({ t, lang, onOpenForm }) {
                     variant="secondary"
                     size="sm"
                     className="w-full"
-                    onClick={() => handleReferenceClick(product)}
+                    onClick={() => openSpecs(product)}
                   >
-                    {lang === "fr" ? "Ajouter Référence" : "Add Reference"}
+                    {lang === 'fr' ? 'Voir spécifications' : 'View specifications'}
                   </Button>
                 </div>
               </div>
@@ -174,140 +110,46 @@ function Products({ t, lang, onOpenForm }) {
         </div>
       </Container>
 
-      {/* Reference Form Modal */}
-      {showReferenceForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-800">
-                  {lang === 'fr' ? 'Ajouter une Référence' : 'Add Reference'} - {selectedProduct?.name}
+      {/* Specs Modal */}
+      {specModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[85vh] overflow-y-auto">
+            <div className="p-5">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-lg font-semibold">
+                  {lang === 'fr' ? 'Spécifications' : 'Specifications'} — {specProduct?.name}
                 </h3>
                 <button
-                  onClick={() => setShowReferenceForm(false)}
+                  onClick={() => setSpecModalOpen(false)}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
                   ×
                 </button>
               </div>
 
-              <form onSubmit={handleReferenceSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {lang === 'fr' ? 'Fournisseur/Producteur' : 'Supplier/Producer'}
-                    </label>
-                    <Select
-                      name="supplier"
-                      value={referenceData.supplier}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">{lang === 'fr' ? 'Sélectionner un fournisseur' : 'Select supplier'}</option>
-                      {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.name}>
-                          {supplier.name} - {supplier.company} ({supplier.country})
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
+              {specList.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  {lang === 'fr' ? 'Spécifications à venir.' : 'Specifications coming soon.'}
+                </p>
+              ) : (
+                <ul className="divide-y">
+                  {specList.map((s, i) => (
+                    <li key={i} className="py-2 text-sm">
+                      <span className="font-medium">{s.label} :</span>{" "}
+                      <span className="text-gray-700">{s.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {lang === 'fr' ? 'Acheteur' : 'Buyer'}
-                    </label>
-                    <Select
-                      name="buyer"
-                      value={referenceData.buyer}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">{lang === 'fr' ? 'Sélectionner un acheteur' : 'Select buyer'}</option>
-                      {buyers.map((buyer) => (
-                        <option key={buyer.id} value={buyer.name}>
-                          {buyer.name} - {buyer.company} ({buyer.country})
-                        </option>
-                      ))}
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    name="quantity"
-                    label={lang === 'fr' ? 'Quantité' : 'Quantity'}
-                    value={referenceData.quantity}
-                    onChange={handleInputChange}
-                    required
-                  />
-                  <Input
-                    name="quality"
-                    label={lang === 'fr' ? 'Qualité' : 'Quality'}
-                    value={referenceData.quality}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {lang === 'fr' ? 'Spécifications demandées par l\'acheteur' : 'Specifications requested by buyer'}
-                  </label>
-                  <Textarea
-                    name="specifications"
-                    value={referenceData.specifications}
-                    onChange={handleInputChange}
-                    rows={3}
-                    placeholder={lang === 'fr' ? 'Décrivez les spécifications détaillées...' : 'Describe detailed specifications...'}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {lang === 'fr' ? 'Conditions de livraison' : 'Delivery Terms'}
-                  </label>
-                  <Input
-                    name="delivery"
-                    value={referenceData.delivery}
-                    onChange={handleInputChange}
-                    placeholder={lang === 'fr' ? 'FOB, CIF, etc.' : 'FOB, CIF, etc.'}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {lang === 'fr' ? 'Notes additionnelles' : 'Additional Notes'}
-                  </label>
-                  <Textarea
-                    name="notes"
-                    value={referenceData.notes}
-                    onChange={handleInputChange}
-                    rows={2}
-                    placeholder={lang === 'fr' ? 'Informations complémentaires...' : 'Additional information...'}
-                  />
-                </div>
-
-                <div className="flex space-x-4 pt-4">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="md"
-                    className="flex-1"
-                  >
-                    {lang === 'fr' ? 'Ajouter Référence' : 'Add Reference'}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="md"
-                    onClick={() => setShowReferenceForm(false)}
-                    className="flex-1"
-                  >
-                    {lang === 'fr' ? 'Annuler' : 'Cancel'}
-                  </Button>
-                </div>
-              </form>
+              <div className="mt-4 text-right">
+                <button
+                  onClick={() => setSpecModalOpen(false)}
+                  className="inline-flex items-center rounded-md border px-4 py-2"
+                >
+                  {lang === 'fr' ? 'Fermer' : 'Close'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
