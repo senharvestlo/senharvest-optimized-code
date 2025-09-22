@@ -1,25 +1,24 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
-// Configuration Firebase SenHarvest
+// Cross-env Firebase configuration (supports Vite and CRA)
 const firebaseConfig = {
-  apiKey: "AIzaSyAvBSeB9QLHn3uvQqf__ATH2WKS2MN5Jxk",
-  authDomain: "xidma-harvest.firebaseapp.com",
-  projectId: "xidma-harvest",
-  storageBucket: "xidma-harvest.firebasestorage.app",
-  messagingSenderId: "6967237281",
-  appId: "1:6967237281:web:03aa0a3ac4e8b54aebaee0",
-  measurementId: "G-C4E4K51XG4"
+  apiKey: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_API_KEY) || process.env.REACT_APP_FB_API_KEY,
+  authDomain: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_AUTH_DOMAIN) || process.env.REACT_APP_FB_AUTH_DOMAIN,
+  projectId: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_PROJECT_ID) || process.env.REACT_APP_FB_PROJECT_ID,
+  storageBucket: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_STORAGE) || process.env.REACT_APP_FB_STORAGE,
+  messagingSenderId: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_SENDER_ID) || process.env.REACT_APP_FB_SENDER_ID,
+  appId: (typeof import !== 'undefined' && import.meta && import.meta.env && import.meta.env.VITE_FB_APP_ID) || process.env.REACT_APP_FB_APP_ID,
 };
 
-// Initialiser Firebase
+// Initialize Firebase app
 const app = initializeApp(firebaseConfig);
 
-// Initialiser Firestore, Auth et Analytics
-export const db = getFirestore(app);
+// Export services
 export const auth = getAuth(app);
-export const analytics = getAnalytics(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 export default app;
