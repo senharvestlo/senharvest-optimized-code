@@ -50,8 +50,8 @@ export default function AdminTermsPDF() {
     company: {
       name: "SenHarvest Group",
       address: "Dakar, Sénégal",
-      phone: "+221 77 634 0064",
-      email: "contact@senharvest.com",
+      phone: "+221 776340064",
+      email: "manager@senharvest.com",
       taxId: "RC SN-123456 / NINEA 001234567",
     },
     client: {

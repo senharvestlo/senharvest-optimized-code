@@ -23,8 +23,8 @@ const Admin = ({ onAccess }) => {
     company: {
       name: 'SenHarvest',
       address: 'Dakar, Sénégal',
-      phone: '+221 33 123 45 67',
-      email: 'contact@senharvest.com'
+      phone: '+221 776340064',
+      email: 'manager@senharvest.com'
     },
     client: {
       name: '',

@@ -49,7 +49,7 @@ Email envoyé depuis le site web SenHarvest Group
 Date: ${new Date().toLocaleString('fr-FR')}
   `);
   
-  const mailtoLink = `mailto:contact@senharvest.com?subject=${subject}&body=${body}`;
+  const mailtoLink = `mailto:manager@senharvest.com?subject=${subject}&body=${body}`;
   window.open(mailtoLink);
   return { status: 'mailto_sent' };
 };
