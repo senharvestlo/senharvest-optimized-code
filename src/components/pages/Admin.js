@@ -5,10 +5,18 @@ import {
 } from '../../services/firebaseService';
 import Button from '../ui/Button';
 import useLang from '../../hooks/useLang';
+import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
+import { storage } from '../../config/firebase';
+import { ref as storageRef, uploadBytes } from 'firebase/storage';
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
   const [activeTab, setActiveTab] = useState('proforma');
+  const [pdfType, setPdfType] = useState('proforma'); // 'proforma' | 'quotation'
+  const [showBankInfo, setShowBankInfo] = useState(true);
+  const [currency, setCurrency] = useState('USD');
+  const [fx, setFx] = useState({ rate: '', feePct: '', transferFeeFlat: '', dstCurrency: 'XOF' });
+  const [useFxConversion, setUseFxConversion] = useState(false);
   const [invoiceData, setInvoiceData] = useState({
     company: {
       name: 'SenHarvest',
@@ -233,6 +241,72 @@ const Admin = ({ onAccess }) => {
     newWindow.document.close();
   };
 
+  // New: Generate modern PDF via html2pdf and upload to Firebase Storage
+  const handleGeneratePDF = async () => {
+    try {
+      const products = (invoiceData.products || []).map(p => ({
+        description: p.description,
+        quality: p.quality || '',
+        quantity: p.quantity,
+        unit: p.unit,
+        unitPrice: p.unitPrice,
+        hsCode: p.hsCode || '',
+        packing: p.packing || ''
+      }));
+
+      const data = {
+        type: pdfType === 'quotation' ? 'quotation' : 'proforma',
+        number: invoiceData.proforma?.number || '',
+        date: invoiceData.proforma?.date || new Date().toISOString().split('T')[0],
+        company: {
+          name: invoiceData.company?.name || 'SenHarvest',
+          address: invoiceData.company?.address || '',
+          phone: invoiceData.company?.phone || '',
+          email: invoiceData.company?.email || '',
+          bank: invoiceData.company?.bank || {},
+        },
+        client: invoiceData.client || {},
+        terms: {
+          incoterm: invoiceData.proforma?.deliveryTerms || 'FOB',
+          pol: invoiceData.proforma?.departurePort || '-',
+          pod: invoiceData.proforma?.destinationPort || '-',
+          paymentMethod: invoiceData.proforma?.paymentMethod || '-',
+          paymentTerms: invoiceData.proforma?.paymentTerms || '-',
+          deliveryTime: invoiceData.proforma?.validityPeriod || '-',
+          notes: invoiceData.proforma?.notes || ''
+        },
+        currency,
+        products,
+        flags: {
+          showBankInfo,
+          useFxConversion
+        },
+        fx: useFxConversion ? {
+          rate: Number(fx.rate || 0),
+          feePct: Number(fx.feePct || 0),
+          transferFeeFlat: Number(fx.transferFeeFlat || 0),
+          dstCurrency: fx.dstCurrency || 'XOF'
+        } : undefined
+      };
+
+      // Trigger browser download
+      await generateTradePDF(data);
+
+      // Also get Blob and upload to Firebase Storage for tracking
+      const { blob, filename } = await generateTradePDFBlob(data);
+      const path = `pdfs/${filename}`;
+      const fileRef = storageRef(storage, path);
+      await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
+
+      alert(lang === 'fr' 
+        ? `PDF généré et téléversé: ${path}` 
+        : `PDF generated and uploaded: ${path}`);
+    } catch (err) {
+      console.error('PDF generation/upload error:', err);
+      alert(lang === 'fr' ? 'Erreur lors de la génération du PDF' : 'Error generating PDF');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -262,6 +336,75 @@ const Admin = ({ onAccess }) => {
           {/* Proforma Tab */}
           {activeTab === 'proforma' && (
             <div className="p-6">
+              {/* PDF Options */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold mb-4">{lang === 'fr' ? 'Options PDF' : 'PDF Options'}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{lang === 'fr' ? 'Type de document' : 'Document Type'}</label>
+                    <select
+                      value={pdfType}
+                      onChange={(e) => setPdfType(e.target.value)}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="proforma">Proforma</option>
+                      <option value="quotation">Quotation / Devis</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="CAD">CAD</option>
+                      <option value="XOF">XOF</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2 mt-6">
+                    <input id="bankInfo" type="checkbox" checked={showBankInfo} onChange={(e)=>setShowBankInfo(e.target.checked)} />
+                    <label htmlFor="bankInfo" className="text-sm text-gray-700">{lang === 'fr' ? 'Afficher infos bancaires (proforma)' : 'Show bank details (proforma)'}
+                    </label>
+                  </div>
+                </div>
+
+                {/* FX Conversion */}
+                <div className="mt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <input id="useFx" type="checkbox" checked={useFxConversion} onChange={(e)=>setUseFxConversion(e.target.checked)} />
+                    <label htmlFor="useFx" className="text-sm text-gray-700">{lang === 'fr' ? 'Conversion de devise (optionnel)' : 'Currency conversion (optional)'}
+                    </label>
+                  </div>
+                  {useFxConversion && (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Rate</label>
+                        <input type="number" step="0.0001" value={fx.rate} onChange={(e)=>setFx(prev=>({...prev, rate:e.target.value}))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Fee %</label>
+                        <input type="number" step="0.0001" value={fx.feePct} onChange={(e)=>setFx(prev=>({...prev, feePct:e.target.value}))}
+                          placeholder="0.02 = 2%"
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Intl Fee (flat)</label>
+                        <input type="number" step="0.01" value={fx.transferFeeFlat} onChange={(e)=>setFx(prev=>({...prev, transferFeeFlat:e.target.value}))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Dest Currency</label>
+                        <input type="text" value={fx.dstCurrency} onChange={(e)=>setFx(prev=>({...prev, dstCurrency:e.target.value}))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Company Information */}
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -666,8 +809,8 @@ const Admin = ({ onAccess }) => {
                 <Button onClick={saveData} variant="primary">
                   {lang === 'fr' ? 'Sauvegarder' : 'Save'}
                 </Button>
-                <Button onClick={generateProforma} variant="secondary">
-                  {lang === 'fr' ? 'Générer Proforma' : 'Generate Proforma'}
+                <Button onClick={handleGeneratePDF} variant="secondary">
+                  {lang === 'fr' ? 'Générer PDF' : 'Generate PDF'}
                 </Button>
               </div>
             </div>

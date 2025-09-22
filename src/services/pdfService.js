@@ -14,6 +14,23 @@ export async function generateTradePDF(data){
   await html2pdf().set(opt).from(el).save();
 }
 
+export async function generateTradePDFBlob(data){
+  const el = renderTemplate(data);
+  const filename = `${data.type === "quotation" ? "quotation":"proforma"}-${data.number||"000"}.pdf`;
+  const opt = {
+    margin: [0.7,0.7,0.7,0.7],
+    filename,
+    image: { type:'jpeg', quality:0.98 },
+    html2canvas: { scale:2, useCORS:true },
+    jsPDF: { unit:'in', format:'a4', orientation:'portrait' },
+    pagebreak: { mode:['avoid-all','css','legacy'] }
+  };
+  const worker = html2pdf().set(opt).from(el).toPdf();
+  const pdfInstance = await worker.get('pdf');
+  const blob = pdfInstance.output('blob');
+  return { blob, filename };
+}
+
 function fmt(n,c='USD'){ return `${c} ${Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`; }
 function convertWithFees(amount, fx){
   if(!fx) return null;
