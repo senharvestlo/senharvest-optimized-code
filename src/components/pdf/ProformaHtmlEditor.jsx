@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { printStyles, saveElementAsPDF, elementToPdfBlob } from '@/utils/pdf';
-import { saveTradeDoc, getTradeDoc, uploadTradePdf } from '@/services/firebaseService';
+import { printStyles, saveElementAsPDF, elementToPdfBlob } from '../../utils/pdf';
+import { saveTradeDoc, getTradeDoc, uploadTradePdf } from '../../services/firebaseService';
 
 const currencySign = (c) => ({ USD:'$', EUR:'€', XOF:'CFA', XAF:'FCFA', CAD:'$' }[c] || c || '');
 const fmt = (n) => Number(n||0).toLocaleString(undefined,{ minimumFractionDigits:2, maximumFractionDigits:2 });
