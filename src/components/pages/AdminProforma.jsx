@@ -1,5 +1,5 @@
 import React from 'react';
-import ProformaEditor from '../pdf/ProformaEditor';
+import ProformaHtmlEditor from '@/components/pdf/ProformaHtmlEditor';
 import useLang from '../../hooks/useLang';
 import { DIC } from '../../config/translations';
 
@@ -14,7 +14,7 @@ export default function AdminProforma() {
     alert('Proforma sauvegardée (voir console).');
   };
 
-  return <ProformaEditor t={t} onSave={handleSave} />;
+  return <ProformaHtmlEditor onBack={()=>{}} />;
 }
 
 

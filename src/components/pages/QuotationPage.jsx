@@ -1,5 +1,5 @@
 import React from 'react';
-import QuotationPrint from '../pdf/QuotationPrint';
+import QuotationHtmlEditor from '@/components/pdf/QuotationHtmlEditor';
 import useLang from '../../hooks/useLang';
 import { DIC } from '../../config/translations';
 
@@ -17,7 +17,7 @@ export default function QuotationPage() {
     sellerSignature: { companyName: 'SenHarvest Group' }
   };
 
-  return <QuotationPrint t={t} {...data} />;
+  return <QuotationHtmlEditor onBack={()=>{}} />;
 }
 
 
