@@ -2,6 +2,20 @@ import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container, SectionTitle, Input, Select, Textarea, Button } from '../ui';
 import { submitContact } from '../../services/firebaseService';
+
+// Cloud Function endpoint (set in .env/.env.local as REACT_APP_CF_SENDCONTACT_URL)
+const CF_ENDPOINT = process.env.REACT_APP_CF_SENDCONTACT_URL;
+
+async function postContactToCF(form) {
+  if (!CF_ENDPOINT) return null;
+  const r = await fetch(CF_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(form),
+  });
+  if (!r.ok) throw new Error('Cloud Function error');
+  return r.json();
+}
 // Form utilities moved inline
 const getInitialFormState = () => ({
   name: '',
@@ -25,7 +39,11 @@ const validateForm = (form) => {
 };
 
 const submitToFormspree = async (formData) => {
-  // Try Firestore, fallback mailto
+  // Prefer Cloud Function (emails + Firestore), then Firestore, then mailto fallback
+  try {
+    const cf = await postContactToCF(formData);
+    if (cf) return { status: 'cf_ok' };
+  } catch {}
   try {
     await submitContact(formData);
     return { status: 'firestore_ok' };
