@@ -4,7 +4,7 @@ import { updateSEO } from './utils/seo';
 import { generateProductInquiry } from './utils/whatsapp';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
-import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy } from './components/pages';
+import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
 import './App.css';
 
 /**
@@ -112,6 +112,9 @@ function App() {
             lang={lang} 
             onSubmit={handleFormSubmit} 
           />
+        )}
+        {page === 'quotation' && (
+          <QuotationPage />
         )}
         
         {page === 'admin' && (

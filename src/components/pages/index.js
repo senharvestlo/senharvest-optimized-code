@@ -9,5 +9,6 @@ export { default as Services } from './Services';
 export { default as Mission } from './Mission';
 export { default as Contact } from './Contact';
 export { default as Admin } from './Admin';
+export { default as QuotationPage } from './QuotationPage';
 export { default as PrivacyPolicy } from './PrivacyPolicy';
 export { default as CookiePolicy } from './CookiePolicy';
