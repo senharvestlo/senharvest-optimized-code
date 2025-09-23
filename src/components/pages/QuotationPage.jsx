@@ -1,5 +1,5 @@
 import React from 'react';
-import QuotationHtmlEditor from '@/components/pdf/QuotationHtmlEditor';
+import QuotationHtmlEditor from '../pdf/QuotationHtmlEditor';
 import useLang from '../../hooks/useLang';
 import { DIC } from '../../config/translations';
 

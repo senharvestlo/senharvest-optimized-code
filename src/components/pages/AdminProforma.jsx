@@ -1,5 +1,5 @@
 import React from 'react';
-import ProformaHtmlEditor from '@/components/pdf/ProformaHtmlEditor';
+import ProformaHtmlEditor from '../pdf/ProformaHtmlEditor';
 import useLang from '../../hooks/useLang';
 import { DIC } from '../../config/translations';
 
