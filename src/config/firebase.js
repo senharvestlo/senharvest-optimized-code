@@ -5,12 +5,13 @@ import { getStorage } from 'firebase/storage';
 
 // CRA-compatible env configuration (use .env with REACT_APP_* keys)
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FB_API_KEY,
-  authDomain: process.env.REACT_APP_FB_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FB_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FB_STORAGE,
-  messagingSenderId: process.env.REACT_APP_FB_SENDER_ID,
-  appId: process.env.REACT_APP_FB_APP_ID,
+  apiKey: process.env.REACT_APP_FB_API_KEY || "AIzaSyAvBSeB9QLHn3uvQqf__ATH2WKS2MN5Jxk",
+  authDomain: process.env.REACT_APP_FB_AUTH_DOMAIN || "xidma-harvest.firebaseapp.com",
+  projectId: process.env.REACT_APP_FB_PROJECT_ID || "xidma-harvest",
+  storageBucket: process.env.REACT_APP_FB_STORAGE || "xidma-harvest.firebasestorage.app",
+  messagingSenderId: process.env.REACT_APP_FB_SENDER_ID || "6967237281",
+  appId: process.env.REACT_APP_FB_APP_ID || "1:6967237281:web:03aa0a3ac4e8b54aebaee0",
+  measurementId: process.env.REACT_APP_FB_MEASUREMENT_ID || "G-C4E4K51XG4"
 };
 
 // Only initialize when required keys exist to avoid runtime error in dev
