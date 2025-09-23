@@ -5,7 +5,7 @@ export default function DocsDashboard({ onOpenNewQuotation, onOpenEdit }) {
   const [rows, setRows] = useState([]);
 
   async function load() {
-    const { items } = await listTradeDocs();
+    const { items } = await listTradeDocs('quotation');
     setRows(items);
   }
   useEffect(()=>{ load(); },[]);
@@ -40,7 +40,7 @@ export default function DocsDashboard({ onOpenNewQuotation, onOpenEdit }) {
                 <td className="border p-2">{d.updatedAt?.toDate ? d.updatedAt.toDate().toLocaleString() : '-'}</td>
                 <td className="border p-2">{d.pdfUrl ? <a className="underline text-blue-700" href={d.pdfUrl} target="_blank" rel="noreferrer">Open</a> : '—'}</td>
                 <td className="border p-2">
-                  <button className="underline mr-3" onClick={()=>onOpenEdit(d.id, d.type)}>Edit</button>
+                  <button className="underline mr-3" onClick={()=>onOpenEdit(d.id, 'quotation')}>Edit</button>
                   <button className="underline text-red-600" onClick={async()=>{
                     if (!window.confirm('Supprimer ce document ?')) return;
                     await deleteTradeDoc(d.id);
