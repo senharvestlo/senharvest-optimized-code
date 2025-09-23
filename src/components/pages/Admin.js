@@ -5,6 +5,7 @@ import {
 } from '../../services/firebaseService';
 import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
+import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import AdminLogin from '../admin/AdminLogin';
 import useLang from '../../hooks/useLang';
@@ -287,6 +288,16 @@ const Admin = ({ onAccess }) => {
                 }`}
               >
                 {lang === 'fr' ? 'Éditeur PDF (HTML)' : 'PDF Editor (HTML)'}
+              </button>
+              <button
+                onClick={() => setActiveTab('admin-proforma')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'admin-proforma'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {lang === 'fr' ? 'Éditeur Proforma (HTML)' : 'Proforma Editor (HTML)'}
               </button>
               <button
                 onClick={() => setActiveTab('product-specs')}
@@ -787,6 +798,11 @@ const Admin = ({ onAccess }) => {
           {activeTab === 'terms' && (
             <div className="p-6">
               <AdminTermsPDF />
+            </div>
+          )}
+          {activeTab === 'admin-proforma' && (
+            <div className="p-6">
+              <AdminProforma />
             </div>
           )}
           {activeTab === 'product-specs' && (
