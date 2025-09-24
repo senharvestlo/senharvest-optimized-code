@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useParams, useNavigate } from 'react-router-dom';
 import useLang from './hooks/useLang';
 import { updateSEO } from './utils/seo';
 import { generateProductInquiry } from './utils/whatsapp';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
+import AdminDocs from '@/components/admin/AdminDocs';
+import AdminDocEditor from '@/components/admin/AdminDocEditor';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { AuthProvider } from '@/context/AuthContext';
 import './App.css';
 
 /**
  * Main App Component
  * Handles routing, SEO, and global state management
  */
-function App() {
+function MainShell() {
   const { lang, setLang, t } = useLang();
   const [page, setPage] = useState("home");
 
@@ -146,6 +151,27 @@ function App() {
       {/* Floating WhatsApp Button */}
       <WhatsAppFloat lang={lang} />
     </div>
+  );
+}
+
+function EditWrapper(){
+  const { id } = useParams();
+  const nav = useNavigate();
+  return <AdminDocEditor id={id || null} navigate={nav} />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/admin/docs" element={<ProtectedRoute><AdminDocs/></ProtectedRoute>} />
+          <Route path="/admin/docs/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/admin/docs/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/*" element={<MainShell/>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

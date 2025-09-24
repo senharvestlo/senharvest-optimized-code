@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container, SectionTitle, Input, Select, Textarea, Button } from '../ui';
-import { submitContact } from '../../services/firebaseService';
 
-// Cloud Function endpoint (set in .env/.env.local as REACT_APP_CF_SENDCONTACT_URL)
-const CF_ENDPOINT = process.env.REACT_APP_CF_SENDCONTACT_URL;
+// Cloud Function endpoint
+// Supports CRA (.env: REACT_APP_CF_SENDCONTACT_URL) and Vite (.env: VITE_CF_SENDCONTACT_URL)
+const CF_ENDPOINT = (typeof import !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_CF_SENDCONTACT_URL)
+  ? import.meta.env.VITE_CF_SENDCONTACT_URL
+  : (process.env.REACT_APP_CF_SENDCONTACT_URL || 'https://us-central1-xidma-harvest.cloudfunctions.net/sendContact');
 
 async function postContactToCF(form) {
   if (!CF_ENDPOINT) return null;
@@ -38,44 +40,6 @@ const validateForm = (form) => {
   return errors;
 };
 
-const submitToFormspree = async (formData) => {
-  // Prefer Cloud Function (emails + Firestore), then Firestore, then mailto fallback
-  try {
-    const cf = await postContactToCF(formData);
-    if (cf) return { status: 'cf_ok' };
-  } catch {}
-  try {
-    await submitContact(formData);
-    return { status: 'firestore_ok' };
-  } catch {}
-  const subject = encodeURIComponent(`[SenHarvest] ${formData.subject}`);
-  const body = encodeURIComponent(`
-Nouvelle demande de contact - SenHarvest Group
-
-INFORMATIONS CLIENT:
-Nom: ${formData.name}
-Email: ${formData.email}
-Téléphone: ${formData.phone}
-
-DÉTAILS DE LA DEMANDE:
-Sujet: ${formData.subject}
-Quantité: ${formData.quantity}
-Destination: ${formData.destination}
-Incoterm: ${formData.incoterm}
-Mode de paiement: ${formData.payment}
-
-MESSAGE:
-${formData.message}
-
----
-Email envoyé depuis le site web SenHarvest Group
-Date: ${new Date().toLocaleString('fr-FR')}
-  `);
-  
-  const mailtoLink = `mailto:manager@senharvest.com?subject=${subject}&body=${body}`;
-  window.open(mailtoLink);
-  return { status: 'mailto_sent' };
-};
 
 /**
  * Contact Page Component
@@ -110,16 +74,19 @@ function Contact({ t, lang, onSubmit }) {
     setErrors({});
     
     try {
-      await submitToFormspree(form);
-      alert(lang === 'fr' 
-        ? 'Votre client email va s\'ouvrir avec un message pré-rempli. Veuillez l\'envoyer pour finaliser votre demande.' 
-        : 'Your email client will open with a pre-filled message. Please send it to complete your request.'
+      await postContactToCF(form);
+      alert(lang === 'fr'
+        ? 'Votre demande a été envoyée ! Nous vous répondrons rapidement.'
+        : 'Your request has been sent! We will get back to you shortly.'
       );
-      onSubmit();
+      onSubmit?.();
       setForm(getInitialFormState());
     } catch (error) {
-      console.error('Form submission error:', error);
-      alert(t.alertError);
+      console.error('Contact error:', error);
+      alert(lang === 'fr'
+        ? "Erreur d'envoi. Veuillez réessayer plus tard."
+        : 'Sending failed. Please try again later.'
+      );
     } finally {
       setBusy(false);
     }
