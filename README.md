@@ -129,9 +129,15 @@ Customize `tailwind.config.js` to:
 |----------|-------------|---------|
 | `REACT_APP_PHONE_SN` | Senegal phone number | `+221776340064` |
 | `REACT_APP_PHONE_CA` | Canada phone number | `+18193198464` |
-| `REACT_APP_EMAIL` | Contact email | `abdoulahat.lo@senharvest.com` |
+| `REACT_APP_EMAIL` | Contact email | `manager@senharvest.com` |
 | `REACT_APP_WHATSAPP` | WhatsApp number | `+221776340064` |
-| `REACT_APP_FORMSPREE_ID` | Formspree form ID | `xqkrpozn` |
+| `REACT_APP_FIREBASE_API_KEY` | Firebase API Key | `your-api-key` |
+| `REACT_APP_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain | `your-project.firebaseapp.com` |
+| `REACT_APP_FIREBASE_PROJECT_ID` | Firebase Project ID | `your-project-id` |
+| `REACT_APP_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket | `your-project.appspot.com` |
+| `REACT_APP_FIREBASE_MESSAGING_SENDER_ID` | Firebase Messaging Sender ID | `123456789` |
+| `REACT_APP_FIREBASE_APP_ID` | Firebase App ID | `1:123456789:web:abcdef` |
+| `REACT_APP_CF_SENDCONTACT_URL` | Cloud Function URL | `https://us-central1-xidma-harvest.cloudfunctions.net/sendContact` |
 
 ## 🚀 Deployment
 
@@ -153,12 +159,12 @@ Customize `tailwind.config.js` to:
 
 ## 📧 Form Integration
 
-The contact form is configured to work with Formspree. To set up:
+The contact form is configured to work with Firebase Cloud Functions. To set up:
 
-1. Create a Formspree account
-2. Create a new form
-3. Update `REACT_APP_FORMSPREE_ID` in your `.env` file
-4. Update the form endpoint in `src/utils/emailService.js`
+1. Deploy the Cloud Function in `functions/sendEmailOnContact.js`
+2. Configure SMTP settings in Firebase Functions config
+3. Update `REACT_APP_CF_SENDCONTACT_URL` in your `.env` file
+4. The form automatically saves to Firestore and sends emails
 
 ## 🔥 Firebase Setup
 
@@ -192,7 +198,7 @@ Access the admin panel by triple-clicking the logo. Features include:
 
 ## 📞 Contact & Support
 
-- **Email:** abdoulahat.lo@senharvest.com
+- **Email:** manager@senharvest.com
 - **WhatsApp:** +221 77 634 00 64
 - **Canada:** +1 819 319 84 64
 - **Website:** [xidmaharvest.com](https://xidmaharvest.com)
