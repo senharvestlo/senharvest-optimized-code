@@ -149,7 +149,7 @@ function MainShell() {
       <Footer t={t} lang={lang} setPage={setPage} />
 
       {/* Floating WhatsApp Button */}
-      <WhatsAppFloat lang={lang} />
+      {/* WhatsApp button hidden per request */}
     </div>
   );
 }
@@ -170,6 +170,7 @@ function App() {
           <Route path="/admin/docs/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
           <Route path="/*" element={<MainShell/>} />
         </Routes>
+        <WhatsAppFloat />
       </BrowserRouter>
     </AuthProvider>
   );

@@ -11,7 +11,7 @@ export const COMPANY = {
   taglineEN:
     "We are an agricultural commodities intermediation and brokerage firm, specialized in exporting products from Senegal (100% broken fragrant rice, peanuts, cashew nuts, salt, fertilizers...) and importing Canadian products (wheat flour, legumes, canola oil...).",
   phoneSN: process.env.REACT_APP_PHONE_SN || "+221776340064", // E.164 preferred
-  phoneCA: process.env.REACT_APP_PHONE_CA || "+18193198464",
+  phoneCA: "+18193198464",
   email: process.env.REACT_APP_EMAIL || "manager@senharvest.com",
   // Numéro WhatsApp utilisé par le bouton flottant (Sénégal)
   // Changez ici si vous souhaitez pointer vers un autre numéro

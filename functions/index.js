@@ -39,12 +39,23 @@ exports.sendContact = functions
     try {
       const { name, email, phone, subject, quantity, destination, incoterm, payment, message } = req.body || {};
 
-      // Save Firestore
-      await admin.firestore().collection("contact_msgs").add({
-        name, email, phone, subject, quantity, destination, incoterm, payment, message,
+      // Filter out undefined values for Firestore
+      const firestoreData = {
+        name: name || "",
+        email: email || "",
+        phone: phone || "",
+        subject: subject || "",
+        quantity: quantity || "",
+        destination: destination || "",
+        incoterm: incoterm || "",
+        payment: payment || "",
+        message: message || "",
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         status: "received"
-      });
+      };
+
+      // Save Firestore
+      await admin.firestore().collection("contact_msgs").add(firestoreData);
 
       // Send mail
       const html = `

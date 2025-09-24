@@ -34,7 +34,7 @@ const validateForm = (form) => {
   if (!form.email.trim()) errors.email = 'Email is required';
   if (!form.subject.trim()) errors.subject = 'Subject is required';
   if (!form.message.trim()) errors.message = 'Message is required';
-  return errors;
+  return { isValid: Object.keys(errors).length === 0, errors };
 };
 
 
