@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  saveProformaToFirebase, 
-  getAllProformasFromFirebase 
-} from '../../services/firebaseService';
+// Removed Firebase imports - using localStorage only
 import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
@@ -12,7 +9,7 @@ import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { saveTradeDocMeta } from '../../services/firebaseService';
+// Removed saveTradeDocMeta import
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
@@ -54,23 +51,10 @@ const Admin = ({ onAccess }) => {
 
   const loadData = useCallback(async () => {
     try {
-      console.log('Loading proforma data from Firebase...');
-      
-      // Load Proforma data from Firebase
-      const proformas = await getAllProformasFromFirebase();
-      if (proformas.length > 0) {
-        const proforma = proformas[0];
-        // Vérifier que la proforma a la structure attendue
-        if (proforma && proforma.company && proforma.client && proforma.proforma) {
-          setInvoiceData(proforma);
-        } else {
-          console.log('Proforma data structure invalid, using default');
-        }
-      }
-    } catch (error) {
-      console.error('Error loading data from Firebase:', error);
-      // Fallback to localStorage if Firebase fails
+      console.log('Loading proforma data from localStorage...');
       loadDataFromLocalStorage();
+    } catch (error) {
+      console.error('Error loading data:', error);
     }
   }, []);
 
@@ -103,11 +87,7 @@ const Admin = ({ onAccess }) => {
 
   const saveData = async () => {
     try {
-      // Save to Firebase
-      await saveProformaToFirebase(invoiceData);
-      console.log('Proforma saved to Firebase successfully');
-      
-      // Save to localStorage as backup
+      // Save to localStorage
       localStorage.setItem('proformaData', JSON.stringify(invoiceData));
       
       alert(lang === 'fr' ? 'Données sauvegardées avec succès !' : 'Data saved successfully!');
@@ -216,8 +196,8 @@ const Admin = ({ onAccess }) => {
       await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
       const url = await getDownloadURL(fileRef);
 
-      // Save metadata to Firestore
-      await saveTradeDocMeta({
+      // Metadata saved to localStorage instead of Firestore
+      const metadata = {
         filename,
         path,
         url,
@@ -228,7 +208,8 @@ const Admin = ({ onAccess }) => {
         clientName: data.client?.name || '',
         currency: data.currency,
         total: calculateTotal()
-      });
+      };
+      localStorage.setItem('lastPdfMetadata', JSON.stringify(metadata));
 
       alert(lang === 'fr' 
         ? `PDF généré, téléversé et sauvegardé: ${path}` 

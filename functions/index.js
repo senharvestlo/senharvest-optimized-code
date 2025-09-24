@@ -1,8 +1,8 @@
-import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
-import nodemailer from "nodemailer";
+const admin = require("firebase-admin");
+const functions = require("firebase-functions");
+const nodemailer = require("nodemailer");
 
-if (!admin.apps.length) admin.initializeApp();
+if (!admin.apps || !admin.apps.length) admin.initializeApp();
 
 const RUNTIME = { region: "us-central1", timeoutSeconds: 30, memory: "256MB" };
 
@@ -25,7 +25,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // --- HTTPS endpoint: /sendContact ---
-export const sendContact = functions
+exports.sendContact = functions
   .runWith(RUNTIME)
   .https.onRequest(async (req, res) => {
     res.set("Access-Control-Allow-Origin", "*");

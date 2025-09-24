@@ -3,7 +3,7 @@ import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
 import { getSpecs as getLocalSpecs } from '../../services/productSpecsService';
-import { getProductSpecs as getFirestoreSpecs } from '../../services/firebaseService';
+// Removed getProductSpecs import
 import SpecsModal from '../products/SpecsModal';
 
 /**
@@ -38,20 +38,6 @@ function Products({ t, lang, onOpenForm }) {
 
   const openSpecs = async (product) => {
     setSpecProduct(product);
-    try {
-      const doc = await getFirestoreSpecs(product.key);
-      if (doc && doc.specs) {
-        if (Array.isArray(doc.specs)) {
-          setSpecList(doc.specs);
-          setSpecText('');
-        } else {
-          setSpecList([]);
-          setSpecText(String(doc.specs));
-        }
-        
-        return;
-      }
-    } catch {}
     const local = getLocalSpecs(product.key);
     setSpecList(local || []);
     setSpecText('');

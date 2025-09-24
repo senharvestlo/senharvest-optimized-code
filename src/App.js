@@ -6,10 +6,10 @@ import { generateProductInquiry } from './utils/whatsapp';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
-import AdminDocs from '@/components/admin/AdminDocs';
-import AdminDocEditor from '@/components/admin/AdminDocEditor';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { AuthProvider } from '@/context/AuthContext';
+import AdminDocs from './components/admin/AdminDocs';
+import AdminDocEditor from './components/admin/AdminDocEditor';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 import './App.css';
 
 /**

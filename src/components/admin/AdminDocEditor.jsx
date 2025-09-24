@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getTradeDoc } from "@/services/firebaseService";
-import ProformaHtmlEditor from "@/components/pdf/ProformaHtmlEditor";
-import QuotationHtmlEditor from "@/components/pdf/QuotationHtmlEditor";
+import { getTradeDoc } from "../../services/firebaseService";
+import ProformaHtmlEditor from "../pdf/ProformaHtmlEditor";
+import QuotationHtmlEditor from "../pdf/QuotationHtmlEditor";
 
 export default function AdminDocEditor({ id: propId }) {
-  const params = typeof useParams === 'function' ? useParams() : {};
+  const params = useParams();
   const routeId = params?.id || null;
   const id = propId != null ? propId : routeId;
   const navigate = useNavigate();

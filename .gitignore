@@ -106,3 +106,5 @@ firestore-debug.log*
 
 # Code documentation files (generated for ChatGPT)
 COMPLETE_PROJECT_CODE*.md
+# Local Netlify folder
+.netlify

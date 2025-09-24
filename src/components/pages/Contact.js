@@ -3,10 +3,7 @@ import { COMPANY } from '../../config/company';
 import { Container, SectionTitle, Input, Select, Textarea, Button } from '../ui';
 
 // Cloud Function endpoint
-// Supports CRA (.env: REACT_APP_CF_SENDCONTACT_URL) and Vite (.env: VITE_CF_SENDCONTACT_URL)
-const CF_ENDPOINT = (typeof import !== 'undefined' && typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_CF_SENDCONTACT_URL)
-  ? import.meta.env.VITE_CF_SENDCONTACT_URL
-  : (process.env.REACT_APP_CF_SENDCONTACT_URL || 'https://us-central1-xidma-harvest.cloudfunctions.net/sendContact');
+const CF_ENDPOINT = process.env.REACT_APP_CF_SENDCONTACT_URL || 'https://us-central1-xidma-harvest.cloudfunctions.net/sendContact';
 
 async function postContactToCF(form) {
   if (!CF_ENDPOINT) return null;

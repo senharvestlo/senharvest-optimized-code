@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { listTradeDocs, deleteTradeDoc } from "@/services/firebaseService";
+import { listTradeDocs, deleteTradeDoc } from "../../services/firebaseService";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDocs(){
