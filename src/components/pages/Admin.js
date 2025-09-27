@@ -5,6 +5,7 @@ import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import AdminLogin from '../admin/AdminLogin';
+import AdminNcndas from '../admin/AdminNcndas';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
@@ -271,6 +272,16 @@ const Admin = ({ onAccess }) => {
                 }`}
               >
                 {lang === 'fr' ? 'Spécifications produits' : 'Product specs'}
+              </button>
+              <button
+                onClick={() => setActiveTab('ncnda')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'ncnda'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {lang === 'fr' ? 'NCNDA' : 'NCNDA'}
               </button>
             </nav>
           </div>
@@ -771,6 +782,11 @@ const Admin = ({ onAccess }) => {
           {activeTab === 'product-specs' && (
             <div className="p-6">
               <AdminProductSpecs lang={lang} />
+            </div>
+          )}
+          {activeTab === 'ncnda' && (
+            <div className="p-6">
+              <AdminNcndas />
             </div>
           )}
         </div>

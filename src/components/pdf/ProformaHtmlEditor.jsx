@@ -15,7 +15,7 @@ export default function ProformaHtmlEditor({ docId=null, onBack }) {
     date: new Date().toLocaleDateString('fr-FR'),
     currency: 'USD',
     validityDays: 30,
-    company: { name:'SenHarvest Group', address:'Dakar, Sénégal', phone:'+221...', email:'info@senharvest.com', logoUrl:'/senharvest-logo.png',
+    company: { name:'SenHarvest Group', address:'Dakar, Sénégal', phone:'+221...', email:'info@senharvest.com', logoUrl:'/Xidma Harvest Logo NB.png',
       bank:{ name:'', iban:'', swift:'', beneficiary:'' } },
     buyer: { name:'', address:'', phone:'', email:'', taxId:'' },
     shipping: { incoterm:'FOB', transport:'Sea', pol:'Dakar, Senegal', pod:'' },

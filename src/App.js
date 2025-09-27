@@ -8,6 +8,7 @@ import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
 import AdminDocs from './components/admin/AdminDocs';
 import AdminDocEditor from './components/admin/AdminDocEditor';
+import AdminNcndas from './components/admin/AdminNcndas';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
@@ -128,6 +129,12 @@ function MainShell() {
             lang={lang} 
             onAccess={() => trackAdminAccess()}
           />
+        )}
+        
+        {page === 'admin-ncnda' && (
+          <ProtectedRoute>
+            <AdminNcndas />
+          </ProtectedRoute>
         )}
         
         {page === 'privacy' && (

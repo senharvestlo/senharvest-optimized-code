@@ -18,7 +18,8 @@ export const COMPANY = {
   whatsApp: process.env.REACT_APP_WHATSAPP || "+221776340064",
   addressFR: "USA • Sénégal • Canada",
   addressEN: "USA • Senegal • Canada",
-  logoSrc: "/senharvest-logo.png", // Your custom logo
+  logoSrc: "/Xidma Harvest Logo NB.png", // Logo pour les PDFs et documents
+  headerLogoSrc: "/SenHarvest logo NB.png", // Logo pour le header du site
   domain: "xidmaharvest.com",
   // Informations d'entreprise pour les documents officiels
   businessId: "7688415 (USA)",

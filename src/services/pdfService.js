@@ -1,5 +1,6 @@
 import html2pdf from "html2pdf.js";
 import { downloadPdfBlob } from "../utils/pdfIo.js";
+import { elementToPdfBlob } from "../utils/html2pdfSafe.js";
 
 export async function generateTradePDF(data){
   console.log('🚀 Début génération PDF avec données:', data);
@@ -9,100 +10,84 @@ export async function generateTradePDF(data){
   
   const filename = `${data.type === "quotation" ? "quotation":"proforma"}-${data.number||"000"}.pdf`;
   
-  // Ajouter l'élément au DOM temporairement pour html2pdf
-  const tempContainer = document.createElement('div');
-  tempContainer.style.position = 'absolute';
-  tempContainer.style.left = '-9999px';
-  tempContainer.style.top = '-9999px';
-  tempContainer.appendChild(el);
-  document.body.appendChild(tempContainer);
-  
-  console.log('📦 Conteneur temporaire ajouté au DOM');
-  
-  const opt = {
-    margin: [10, 12, 10, 12],
-    filename,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['css', 'legacy'] }
-  };
-  
   try {
-    await html2pdf()
-      .set(opt)
-      .from(tempContainer)
-      .toPdf()
-      .get('pdf')
-      .then((pdf) => {
-        console.log('📊 PDF généré avec', pdf.internal.getNumberOfPages(), 'pages');
-        
-        // Supprimer le footer auto "about:blank"
-        const pageCount = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          pdf.setPage(i);
-          
-          // Effacer le footer ajouté automatiquement avec du texte blanc
-          pdf.setFontSize(8);
-          pdf.setTextColor(255, 255, 255); // écrit en blanc => invisible
-          pdf.text('', 200, pdf.internal.pageSize.height - 10, null, null, 'right');
-          pdf.text('', 100, pdf.internal.pageSize.height - 10, null, null, 'center');
-          pdf.text('', 20, pdf.internal.pageSize.height - 10, null, null, 'left');
-          
-          // Maintenant ajouter notre footer personnalisé
-          pdf.setTextColor(100, 100, 100); // gris foncé
-          
-          // Informations d'entreprise en bas à gauche
-          pdf.setFontSize(8);
-          pdf.text(
-            'Business ID Number: 7688415 (USA)',
-            20,
-            pdf.internal.pageSize.height - 15,
-            null, null, 'left'
-          );
-          
-          pdf.text(
-            'NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)',
-            20,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'left'
-          );
-          
-          // Numéro de page en bas à droite
-          pdf.setFontSize(9);
-          pdf.text(
-            `Page ${i} / ${pageCount}`,
-            200,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'right'
-          );
-          
-          // SenHarvest Group au centre
-          pdf.text(
-            'SenHarvest Group — www.senharvest.com',
-            105,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'center'
-          );
-        }
-        
-        // Build a clean Blob (no window.open)
-        const arrayBuffer = pdf.output('arraybuffer');
-        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-        console.log('💾 Blob créé, taille:', blob.size, 'bytes');
-        
-        downloadPdfBlob(blob, filename);
-        console.log('⬇️ Téléchargement lancé');
-      });
+    // Utiliser la nouvelle fonction robuste
+    const blob = await elementToPdfBlob(el, filename, {
+      margin: [10, 12, 10, 12],
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#FFFFFF'
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    });
+    
+    console.log('💾 Blob créé, taille:', blob.size, 'bytes');
+    
+    // Ajouter le footer personnalisé
+    const pdf = await html2pdf().set({
+      margin: [10, 12, 10, 12],
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(el).toPdf().get('pdf');
+    
+    const pageCount = pdf.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      pdf.setPage(i);
+      
+      // Ajouter notre footer personnalisé
+      pdf.setTextColor(100, 100, 100); // gris foncé
+      
+      // Informations d'entreprise en bas à gauche
+      pdf.setFontSize(8);
+      pdf.text(
+        'Business ID Number: 7688415 (USA)',
+        20,
+        pdf.internal.pageSize.height - 15,
+        null, null, 'left'
+      );
+      
+      pdf.text(
+        'NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)',
+        20,
+        pdf.internal.pageSize.height - 10,
+        null, null, 'left'
+      );
+      
+      // Numéro de page en bas à droite
+      pdf.setFontSize(9);
+      pdf.text(
+        `Page ${i} / ${pageCount}`,
+        200,
+        pdf.internal.pageSize.height - 10,
+        null, null, 'right'
+      );
+      
+      // SenHarvest Group au centre
+      pdf.text(
+        'SenHarvest Group — www.senharvest.com',
+        105,
+        pdf.internal.pageSize.height - 10,
+        null, null, 'center'
+      );
+    }
+    
+    const arrayBuffer = pdf.output('arraybuffer');
+    const finalBlob = new Blob([arrayBuffer], { type: 'application/pdf' });
+    
+    downloadPdfBlob(finalBlob, filename);
+    console.log('⬇️ Téléchargement lancé');
+    
   } catch (error) {
     console.error('❌ Erreur lors de la génération PDF:', error);
     throw error;
-  } finally {
-    // Nettoyer le conteneur temporaire
-    if (tempContainer.parentNode) {
-      tempContainer.parentNode.removeChild(tempContainer);
-      console.log('🧹 Conteneur temporaire nettoyé');
-    }
   }
 }
 
@@ -228,7 +213,7 @@ function renderTemplate(d){
   <div class="doc">
     <div class="row mb6">
       <div class="col">
-        <img src="/senharvest-logo.png" alt="logo" style="height:44px"/>
+        <img src="/Xidma Harvest Logo NB.png" alt="logo" style="height:44px"/>
         <div class="small muted">${esc(d.company?.address||"")}</div>
         <div class="small muted">Tel: ${esc(d.company?.phone||"")} · ${esc(d.company?.email||"")}</div>
       </div>

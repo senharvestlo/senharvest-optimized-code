@@ -1,8 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permettre la lecture et l'écriture pour tous les utilisateurs
-    // (Pour commencer, nous utilisons des règles ouvertes)
+    // Admin-only pour NCNDA
+    match /ncndas/{id} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // Permettre la lecture et l'écriture pour tous les autres documents
+    // (Pour commencer, nous utilisons des règles ouvertes pour le reste)
     match /{document=**} {
       allow read, write: if true;
     }

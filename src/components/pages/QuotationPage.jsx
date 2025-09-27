@@ -8,7 +8,7 @@ export default function QuotationPage() {
   const t = DIC[lang];
 
   const data = {
-    company: { name: 'SenHarvest Group', address: 'Dakar, Sénégal', phone: '+221776340064', email: 'manager@senharvest.com', logoUrl: '/senharvest-logo.png' },
+    company: { name: 'SenHarvest Group', address: 'Dakar, Sénégal', phone: '+221776340064', email: 'manager@senharvest.com', logoUrl: '/Xidma Harvest Logo NB.png' },
     buyer:   { name: 'Client SA', address: 'Montreal, QC', phone: '+1 819 319 8464', email: 'buyer@client.com', taxId: 'CA-GST-...' },
     meta:    { number: 'QT-2025-001', date: new Date().toLocaleDateString('fr-FR'), validityDays: 30 },
     items:   [{ description:'Raw Cashew Nuts', grade:'Moisture ≤ 8%', quantity:500, unit:'MT', pack:'50kg PP+PE bags', hsCode:'0801.32.00', unitPrice:4200, currency:'USD' }],

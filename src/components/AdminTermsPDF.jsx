@@ -46,7 +46,7 @@ export default function AdminTermsPDF() {
     fxRate: 610,
     fxPct: 1.5,
     fxFlat: 25,
-    logoPath: "/senharvest-logo.png",
+    logoPath: "/Xidma Harvest Logo NB.png",
     company: {
       name: "SenHarvest Group",
       address: "Dakar, Sénégal",
@@ -258,7 +258,7 @@ export default function AdminTermsPDF() {
       <div className="grid md:grid-cols-3 gap-4">
         <Select label="Type de document" value={docType} onChange={setDocType} options={[["proforma","Proforma Invoice"],["quotation","Quotation / Devis"]]} />
         <Select label="Devise source" value={currency} onChange={setCurrency} options={[["USD","USD"],["EUR","EUR"],["CAD","CAD"],["XOF","XOF"],["XAF","XAF"]]} />
-        <Input label="Logo (chemin public)" value={logoPath} onChange={setLogoPath} placeholder="/senharvest-logo.png" />
+        <Input label="Logo (chemin public)" value={logoPath} onChange={setLogoPath} placeholder="/Xidma Harvest Logo NB.png" />
       </div>
 
       <div className="grid md:grid-cols-3 gap-4">

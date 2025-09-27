@@ -1,0 +1,21 @@
+/* src/styles/print.css */
+
+/* Force A4 */
+@page { size: A4; margin: 10mm 12mm; }
+
+/* Pas de coupure dans les blocs essentiels */
+.avoid-break, .signature-row, .totals, .terms, .table, .table thead, .table tbody, .table tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Lignes de tableau plus nettes en print */
+.table th, .table td {
+  border-color: #e5e7eb !important; /* gray-200 */
+}
+
+/* Cacher les éléments UI */
+@media print {
+  .no-print, [data-no-print="true"] { display: none !important; }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

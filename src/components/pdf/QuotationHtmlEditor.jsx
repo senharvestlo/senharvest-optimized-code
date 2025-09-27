@@ -15,7 +15,7 @@ export default function QuotationHtmlEditor({ docId=null, onBack }) {
     date: new Date().toLocaleDateString('fr-FR'),
     currency: 'USD',
     validityDays: 30,
-    company: { name:'SenHarvest Group', address:'Dakar, Sénégal', phone:'+221...', email:'info@senharvest.com', logoUrl:'/senharvest-logo.png' },
+    company: { name:'SenHarvest Group', address:'Dakar, Sénégal', phone:'+221...', email:'info@senharvest.com', logoUrl:'/Xidma Harvest Logo NB.png' },
     buyer: { name:'', address:'', phone:'', email:'', taxId:'' },
     shipping: { incoterm:'CIF', transport:'Sea', pol:'Dakar, Senegal', pod:'Montréal' },
     items: [{ description:'Raw Cashew Nuts', grade:'Moisture ≤ 8%', quantity:100, unit:'MT', pack:'50kg PP+PE bags', hsCode:'0801.32.00', unitPrice:1200 }],

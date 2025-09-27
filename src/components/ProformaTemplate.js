@@ -36,7 +36,7 @@ const ProformaTemplate = ({ data, lang }) => {
       <div className="flex justify-between items-start mb-8">
         <div>
           <img 
-            src="/senharvest-logo.png" 
+            src="/Xidma Harvest Logo NB.png" 
             alt="SenHarvest Logo" 
             className="h-16 w-auto mb-4"
           />

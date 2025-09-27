@@ -1,5 +1,6 @@
 import html2pdf from 'html2pdf.js';
 import { downloadPdfBlob, printPdfBlob } from '../utils/pdfIo.js';
+import { elementToPdfBlob } from '../utils/html2pdfSafe.js';
 
 /* ================= i18n ================= */
 const I18N = {
@@ -189,7 +190,7 @@ export function buildInvoiceHTMLElement(data, documentType = 'proforma', opts = 
   const dstCcy = opts.secondaryCurrency || null;
   const enableFX = Boolean(opts.enableFX && dstCcy && opts.fx?.rate);
   const enableBank = type === 'proforma' && Boolean(opts.enableBankInfo);
-  const logoPath = opts.logoPath || '/senharvest-logo.png';
+  const logoPath = opts.logoPath || '/Xidma Harvest Logo NB.png';
 
   let subtotal = 0;
   const rows = (products || []).map(p => {
@@ -605,67 +606,22 @@ export async function generateAndDownloadHTMLPDF(data, documentType = 'proforma'
   };
 
   try {
-    // Utiliser l'approche avec effacement du footer auto et téléchargement propre
-    await html2pdf()
-      .set(opt)
-      .from(tempContainer)
-      .toPdf()
-      .get('pdf')
-      .then((pdf) => {
-        // Supprimer le footer auto "about:blank"
-        const pageCount = pdf.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-          pdf.setPage(i);
-          
-          // Effacer le footer ajouté automatiquement avec du texte blanc
-          pdf.setFontSize(8);
-          pdf.setTextColor(255, 255, 255); // écrit en blanc => invisible
-          pdf.text('', 200, pdf.internal.pageSize.height - 10, null, null, 'right');
-          pdf.text('', 100, pdf.internal.pageSize.height - 10, null, null, 'center');
-          pdf.text('', 20, pdf.internal.pageSize.height - 10, null, null, 'left');
-          
-          // Maintenant ajouter notre footer personnalisé
-          pdf.setTextColor(100, 100, 100); // gris foncé
-          
-          // Informations d'entreprise en bas à gauche
-          pdf.setFontSize(8);
-          pdf.text(
-            'Business ID Number: 7688415 (USA)',
-            20,
-            pdf.internal.pageSize.height - 15,
-            null, null, 'left'
-          );
-          
-          pdf.text(
-            'NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)',
-            20,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'left'
-          );
-          
-          // Numéro de page en bas à droite
-          pdf.setFontSize(9);
-          pdf.text(
-            `Page ${i} / ${pageCount}`,
-            200,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'right'
-          );
-          
-          // SenHarvest Group au centre
-          pdf.text(
-            'SenHarvest Group — www.senharvest.com',
-            105,
-            pdf.internal.pageSize.height - 10,
-            null, null, 'center'
-          );
-        }
-        
-        // Build a clean Blob (no window.open)
-        const arrayBuffer = pdf.output('arraybuffer');
-        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
-        downloadPdfBlob(blob, defName);
-      });
+    // Utiliser la nouvelle fonction robuste
+    const blob = await elementToPdfBlob(tempContainer, defName, {
+      margin: [10, 12, 10, 12],
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        backgroundColor: '#FFFFFF'
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    });
+    
+    downloadPdfBlob(blob, defName);
   } finally {
     // Nettoyer le conteneur temporaire
     if (tempContainer.parentNode) {

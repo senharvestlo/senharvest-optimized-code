@@ -49,7 +49,7 @@ function Header({ t, lang, setLang, page, setPage }) {
               aria-label={`${COMPANY.name} logo - Go to home page`}
             >
               <img 
-                src={COMPANY.logoSrc} 
+                src={COMPANY.headerLogoSrc || COMPANY.logoSrc} 
                 alt={`${COMPANY.name} logo`} 
                 className="w-full h-full object-contain" 
                 onError={(e) => { e.target.style.display = 'none'; }} 
