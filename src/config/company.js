@@ -20,6 +20,11 @@ export const COMPANY = {
   addressEN: "USA • Senegal • Canada",
   logoSrc: "/senharvest-logo.png", // Your custom logo
   domain: "xidmaharvest.com",
+  // Informations d'entreprise pour les documents officiels
+  businessId: "7688415 (USA)",
+  ninea: "010864694/1D1",
+  rrcm: "SN DKR 2023 A 53039 (Sénégal)",
+  website: "www.senharvest.com"
 };
 
 // Indicative price label (compliance)

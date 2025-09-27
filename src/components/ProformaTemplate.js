@@ -231,6 +231,10 @@ const ProformaTemplate = ({ data, lang }) => {
           <p className="mt-2">
             {lang === 'fr' ? 'USA • Sénégal • Canada' : 'USA • Senegal • Canada'}
           </p>
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Business ID Number: 7688415 (USA)</p>
+            <p>NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)</p>
+          </div>
         </div>
       </div>
     </div>

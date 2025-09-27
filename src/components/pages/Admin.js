@@ -186,7 +186,7 @@ const Admin = ({ onAccess }) => {
         } : undefined
       };
 
-      // Trigger browser download
+      // Trigger browser download - Utiliser la nouvelle méthode sans about:blank
       await generateTradePDF(data);
 
       // Optionnel: upload + métadonnées (l'utilisateur peut préférer download local uniquement)

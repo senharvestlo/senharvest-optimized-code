@@ -1,32 +1,175 @@
 import html2pdf from "html2pdf.js";
+import { downloadPdfBlob } from "../utils/pdfIo.js";
 
 export async function generateTradePDF(data){
+  console.log('🚀 Début génération PDF avec données:', data);
+  
   const el = renderTemplate(data);
+  console.log('📄 Élément généré:', el);
+  
   const filename = `${data.type === "quotation" ? "quotation":"proforma"}-${data.number||"000"}.pdf`;
+  
+  // Ajouter l'élément au DOM temporairement pour html2pdf
+  const tempContainer = document.createElement('div');
+  tempContainer.style.position = 'absolute';
+  tempContainer.style.left = '-9999px';
+  tempContainer.style.top = '-9999px';
+  tempContainer.appendChild(el);
+  document.body.appendChild(tempContainer);
+  
+  console.log('📦 Conteneur temporaire ajouté au DOM');
+  
   const opt = {
-    margin: [0.7,0.7,0.7,0.7],
+    margin: [10, 12, 10, 12],
     filename,
-    image: { type:'jpeg', quality:0.98 },
-    html2canvas: { scale:2, useCORS:true },
-    jsPDF: { unit:'in', format:'a4', orientation:'portrait' },
-    pagebreak: { mode:['avoid-all','css','legacy'] }
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
   };
-  await html2pdf().set(opt).from(el).save();
+  
+  try {
+    await html2pdf()
+      .set(opt)
+      .from(tempContainer)
+      .toPdf()
+      .get('pdf')
+      .then((pdf) => {
+        console.log('📊 PDF généré avec', pdf.internal.getNumberOfPages(), 'pages');
+        
+        // Supprimer le footer auto "about:blank"
+        const pageCount = pdf.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          pdf.setPage(i);
+          
+          // Effacer le footer ajouté automatiquement avec du texte blanc
+          pdf.setFontSize(8);
+          pdf.setTextColor(255, 255, 255); // écrit en blanc => invisible
+          pdf.text('', 200, pdf.internal.pageSize.height - 10, null, null, 'right');
+          pdf.text('', 100, pdf.internal.pageSize.height - 10, null, null, 'center');
+          pdf.text('', 20, pdf.internal.pageSize.height - 10, null, null, 'left');
+          
+          // Maintenant ajouter notre footer personnalisé
+          pdf.setTextColor(100, 100, 100); // gris foncé
+          
+          // Informations d'entreprise en bas à gauche
+          pdf.setFontSize(8);
+          pdf.text(
+            'Business ID Number: 7688415 (USA)',
+            20,
+            pdf.internal.pageSize.height - 15,
+            null, null, 'left'
+          );
+          
+          pdf.text(
+            'NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)',
+            20,
+            pdf.internal.pageSize.height - 10,
+            null, null, 'left'
+          );
+          
+          // Numéro de page en bas à droite
+          pdf.setFontSize(9);
+          pdf.text(
+            `Page ${i} / ${pageCount}`,
+            200,
+            pdf.internal.pageSize.height - 10,
+            null, null, 'right'
+          );
+          
+          // SenHarvest Group au centre
+          pdf.text(
+            'SenHarvest Group — www.senharvest.com',
+            105,
+            pdf.internal.pageSize.height - 10,
+            null, null, 'center'
+          );
+        }
+        
+        // Build a clean Blob (no window.open)
+        const arrayBuffer = pdf.output('arraybuffer');
+        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+        console.log('💾 Blob créé, taille:', blob.size, 'bytes');
+        
+        downloadPdfBlob(blob, filename);
+        console.log('⬇️ Téléchargement lancé');
+      });
+  } catch (error) {
+    console.error('❌ Erreur lors de la génération PDF:', error);
+    throw error;
+  } finally {
+    // Nettoyer le conteneur temporaire
+    if (tempContainer.parentNode) {
+      tempContainer.parentNode.removeChild(tempContainer);
+      console.log('🧹 Conteneur temporaire nettoyé');
+    }
+  }
 }
 
 export async function generateTradePDFBlob(data){
   const el = renderTemplate(data);
   const filename = `${data.type === "quotation" ? "quotation":"proforma"}-${data.number||"000"}.pdf`;
   const opt = {
-    margin: [0.7,0.7,0.7,0.7],
+    margin: [10, 12, 10, 12],
     filename,
-    image: { type:'jpeg', quality:0.98 },
-    html2canvas: { scale:2, useCORS:true },
-    jsPDF: { unit:'in', format:'a4', orientation:'portrait' },
-    pagebreak: { mode:['avoid-all','css','legacy'] }
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
   };
+  
   const worker = html2pdf().set(opt).from(el).toPdf();
   const pdfInstance = await worker.get('pdf');
+  
+  // Supprimer le footer auto "about:blank" et ajouter notre footer
+  const pageCount = pdfInstance.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    pdfInstance.setPage(i);
+    
+    // Effacer le footer ajouté automatiquement avec du texte blanc
+    pdfInstance.setFontSize(8);
+    pdfInstance.setTextColor(255, 255, 255); // écrit en blanc => invisible
+    pdfInstance.text('', 200, pdfInstance.internal.pageSize.height - 10, null, null, 'right');
+    pdfInstance.text('', 100, pdfInstance.internal.pageSize.height - 10, null, null, 'center');
+    pdfInstance.text('', 20, pdfInstance.internal.pageSize.height - 10, null, null, 'left');
+    
+    // Maintenant ajouter notre footer personnalisé
+    pdfInstance.setTextColor(100, 100, 100); // gris foncé
+    
+    // Informations d'entreprise en bas à gauche
+    pdfInstance.setFontSize(8);
+    pdfInstance.text(
+      'Business ID Number: 7688415 (USA)',
+      20,
+      pdfInstance.internal.pageSize.height - 15,
+      null, null, 'left'
+    );
+    
+    pdfInstance.text(
+      'NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)',
+      20,
+      pdfInstance.internal.pageSize.height - 10,
+      null, null, 'left'
+    );
+    
+    // Numéro de page en bas à droite
+    pdfInstance.setFontSize(9);
+    pdfInstance.text(
+      `Page ${i} / ${pageCount}`,
+      200,
+      pdfInstance.internal.pageSize.height - 10,
+      null, null, 'right'
+    );
+    
+    // SenHarvest Group au centre
+    pdfInstance.text(
+      'SenHarvest Group — www.senharvest.com',
+      105,
+      pdfInstance.internal.pageSize.height - 10,
+      null, null, 'center'
+    );
+  }
+  
   const blob = pdfInstance.output('blob');
   return { blob, filename };
 }
@@ -64,6 +207,22 @@ function renderTemplate(d){
     .row{ display:flex; gap:12px }
     .col{ flex:1 }
     .small{ font-size:11px }
+    @media print { 
+      .no-print { display: none !important; visibility: hidden !important; }
+      button { display: none !important; }
+      .print-controls { display: none !important; }
+      @page { 
+        margin: 0.5in; 
+        size: A4;
+      }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+    body { 
+      margin: 0 !important; 
+      padding: 0 !important; 
+      background: white !important;
+    }
+    .print-hidden { display: none !important; visibility: hidden !important; }
   </style>
 
   <div class="doc">
@@ -166,11 +325,18 @@ function renderTemplate(d){
     </div>
 
     <div class="small muted" style="margin-top:10px">
-      ${d.type==="quotation"
-        ? "This is a quotation; prices subject to confirmation."
-        : "This is a proforma invoice; not a tax invoice."
-      }
-      · SenHarvest Group — www.senharvest.com
+      <div>
+        ${d.type==="quotation"
+          ? "This is a quotation; prices subject to confirmation."
+          : "This is a proforma invoice; not a tax invoice."
+        }
+      </div>
+      <div style="margin-top:4px">
+        Business ID Number: 7688415 (USA) | NINEA: 010864694/1D1 - RRCM: SN DKR 2023 A 53039 (Sénégal)
+      </div>
+      <div style="margin-top:2px">
+        SenHarvest Group — www.senharvest.com
+      </div>
     </div>
   </div>
   `;

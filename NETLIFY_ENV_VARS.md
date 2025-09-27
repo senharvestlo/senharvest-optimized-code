@@ -56,3 +56,4 @@ After deployment, you can verify the variables are working by:
 1. Checking the contact form functionality
 2. Verifying Firebase connection in browser console
 3. Testing admin panel features
+
