@@ -1,15 +1,20 @@
 // src/services/ncndaService.js
-import { db } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import {
   addDoc, updateDoc, deleteDoc, getDoc, getDocs,
   collection, doc, query, orderBy, limit, serverTimestamp
 } from 'firebase/firestore';
 
+function uid() { return auth.currentUser?.uid || null; }
+
 const COL = 'ncndas';
 
 export async function createNcnda(data) {
+  const ownerUid = uid();
+  if (!ownerUid) throw new Error('Not authenticated');
   const ref = await addDoc(collection(db, COL), {
     ...data,
+    ownerUid,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });

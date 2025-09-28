@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container } from '../ui';
+import LoginLogo from '../auth/LoginLogo';
 
 /**
  * Footer Component
@@ -41,18 +42,9 @@ function Footer({ t, lang, setPage }) {
         <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
           {/* Company Info */}
           <div className="flex items-center space-x-3">
-            <button 
-              onClick={handleFooterLogoClick}
-              className="w-10 h-10 flex items-center justify-center hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded" 
-              aria-label={`${COMPANY.name} logo - Go to home page`}
-            >
-              <img 
-                src={COMPANY.logoSrc} 
-                alt={`${COMPANY.name} logo`} 
-                className="w-full h-full object-contain" 
-                onError={(e) => { e.target.style.display = 'none'; }} 
-              />
-            </button>
+            <div className="w-10 h-10 flex items-center justify-center">
+              <LoginLogo />
+            </div>
             <button 
               onClick={handleFooterCompanyNameClick}
               className="text-left hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded"

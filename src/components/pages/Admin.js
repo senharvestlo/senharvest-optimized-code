@@ -6,6 +6,7 @@ import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import AdminLogin from '../admin/AdminLogin';
 import AdminNcndas from '../admin/AdminNcndas';
+import GrantAdminButton from '../admin/GrantAdminButton';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
@@ -786,6 +787,9 @@ const Admin = ({ onAccess }) => {
           )}
           {activeTab === 'ncnda' && (
             <div className="p-6">
+              <div className="mb-6">
+                <GrantAdminButton />
+              </div>
               <AdminNcndas />
             </div>
           )}

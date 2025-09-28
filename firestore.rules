@@ -1,10 +1,58 @@
+// ====================== HELPERS ======================
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Permettre la lecture et l'écriture pour tous les documents
-    // (Règles ouvertes pour le développement - à sécuriser en production)
-    match /{document=**} {
-      allow read, write: if true;
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    // Pour documents "possédés" par un user
+    function isOwner() {
+      return isSignedIn() && resource.data.ownerUid == request.auth.uid;
+    }
+    function isOwnerNew(data) {
+      return isSignedIn() && data.ownerUid == request.auth.uid;
+    }
+
+    // ================== COLLECTIONS ===================
+    // Documents commerciaux : proformas / quotations / ncndas
+    match /proformas/{id} {
+      allow read: if isAdmin() || isOwner();
+      allow create: if isAdmin() || isOwnerNew(request.resource.data);
+      allow update, delete: if isAdmin() || isOwner();
+    }
+    match /quotations/{id} {
+      allow read: if isAdmin() || isOwner();
+      allow create: if isAdmin() || isOwnerNew(request.resource.data);
+      allow update, delete: if isAdmin() || isOwner();
+    }
+    match /ncndas/{id} {
+      allow read: if isAdmin() || isOwner();
+      allow create: if isAdmin() || isOwnerNew(request.resource.data);
+      allow update, delete: if isAdmin() || isOwner();
+    }
+
+    // Spécifications produits (admin only pour écrire ; lecture possible si connecté)
+    match /productSpecs/{id} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Messages contact (lecture admin, création par tout le monde authentifié ou anonyme via CF)
+    match /contacts/{id} {
+      // Si vous acceptez l'écrit côté client connecté :
+      allow create: if isSignedIn() || true; // autorise même non-auth le write de "contact"
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Optionnel: un /settings/{id} réservé admin
+    match /settings/{id} {
+      allow read, write: if isAdmin();
     }
   }
 }
