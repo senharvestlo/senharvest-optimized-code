@@ -5,6 +5,7 @@ import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import AdminLogin from '../admin/AdminLogin';
+import { useAdminAuth } from '../../hooks/useAdminAuth';
 import AdminNcndas from '../admin/AdminNcndas';
 import GrantAdminButton from '../admin/GrantAdminButton';
 import useLang from '../../hooks/useLang';
@@ -15,6 +16,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
+  const { isAdmin, loading } = useAdminAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('terms');
   const [pdfType, setPdfType] = useState('proforma'); // 'proforma' | 'quotation'
@@ -59,6 +61,11 @@ const Admin = ({ onAccess }) => {
       console.error('Error loading data:', error);
     }
   }, []);
+
+  // Synchroniser l'état d'authentification avec le hook
+  useEffect(() => {
+    setIsAuthenticated(isAdmin);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (onAccess) {
@@ -221,6 +228,17 @@ const Admin = ({ onAccess }) => {
       alert(lang === 'fr' ? 'Erreur lors de la génération du PDF' : 'Error generating PDF');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return (

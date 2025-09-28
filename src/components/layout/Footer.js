@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container } from '../ui';
-import LoginLogo from '../auth/LoginLogo';
+import SimpleAdminLogin from '../auth/SimpleAdminLogin';
 
 /**
  * Footer Component
@@ -43,7 +43,7 @@ function Footer({ t, lang, setPage }) {
           {/* Company Info */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 flex items-center justify-center">
-              <LoginLogo />
+              <SimpleAdminLogin onLogin={() => window.location.reload()} />
             </div>
             <button 
               onClick={handleFooterCompanyNameClick}
