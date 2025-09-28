@@ -1,6 +1,5 @@
 {
   "name": "senharvest-functions",
-  "type": "module",
   "engines": { "node": "20" },
   "dependencies": {
     "firebase-admin": "^12.5.0",

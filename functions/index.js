@@ -1,11 +1,11 @@
-import * as admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
-import corsLib from 'cors';
-import nodemailer from 'nodemailer';
+const admin = require('firebase-admin');
+const functions = require('firebase-functions');
+const cors = require('cors')({ origin: true });
+const nodemailer = require('nodemailer');
 
-const cors = corsLib({ origin: true });
-
-try { admin.app(); } catch { admin.initializeApp(); }
+if (!admin.apps || !admin.apps.length) {
+  admin.initializeApp();
+}
 
 // Liste blanche des emails admin (modifiable)
 const ADMIN_WHITELIST = [
@@ -17,7 +17,7 @@ const ADMIN_WHITELIST = [
  * Callable: setAdminClaim
  * - Appelé par un super-admin (ou restreindre à la whitelist ci-dessous)
  */
-export const setAdminClaim = functions.https.onCall(async (data, context) => {
+exports.setAdminClaim = functions.https.onCall(async (data, context) => {
   // Restreindre l'appelant (ici: doit être déjà admin OU faire un contrôle fort)
   const callerEmail = context.auth?.token?.email || '';
   if (!callerEmail || !ADMIN_WHITELIST.includes(callerEmail)) {
@@ -39,7 +39,7 @@ export const setAdminClaim = functions.https.onCall(async (data, context) => {
  * - Enregistre contact dans Firestore + envoie email (Hostinger SMTP)
  * - Côté Netlify, appelez cet endpoint via fetch depuis le formulaire
  */
-export const submitContact = functions.https.onRequest(async (req, res) => {
+exports.submitContact = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
