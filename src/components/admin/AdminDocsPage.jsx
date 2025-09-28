@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import DocsDashboard from "./DocsDashboard";
-import ProformaHtmlEditor from "@/components/pdf/ProformaHtmlEditor";
-import QuotationHtmlEditor from "@/components/pdf/QuotationHtmlEditor";
+import ProformaHtmlEditor from "../pdf/ProformaHtmlEditor";
+import QuotationHtmlEditor from "../pdf/QuotationHtmlEditor";
 
 export default function AdminDocsPage(){
   const [mode, setMode] = useState('list');

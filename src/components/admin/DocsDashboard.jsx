@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { listTradeDocs, deleteTradeDoc } from "@/services/firebaseService";
+import { listTradeDocs, deleteTradeDoc } from "../../services/firebaseService";
 
 export default function DocsDashboard({ onOpenNewQuotation, onOpenEdit }) {
   const [rows, setRows] = useState([]);
