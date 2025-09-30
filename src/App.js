@@ -8,9 +8,11 @@ import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
 import AdminDashboard from './components/pages/admin/AdminDashboard';
 import AdminNcndaPage from './components/pages/admin/AdminNcndaPage';
-import AdminDocs from './components/admin/AdminDocs';
-import AdminDocEditor from './components/admin/AdminDocEditor';
 import AdminNcndas from './components/admin/AdminNcndas';
+import AdminDocEditor from './components/admin/AdminDocEditor';
+import DocsList from './pages/admin/DocsList';
+import EditQuotation from './pages/admin/EditQuotation';
+import EditProforma from './pages/admin/EditProforma';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
@@ -174,12 +176,17 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/admin/docs" element={<ProtectedRoute><AdminDocs/></ProtectedRoute>} />
-          <Route path="/admin/docs/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
-          <Route path="/admin/docs/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          {/* Nouveau système Proforma/Devis avec collections séparées */}
+          <Route path="/admin/docs" element={<ProtectedRoute><DocsList/></ProtectedRoute>} />
+          <Route path="/admin/quotation/:id" element={<ProtectedRoute><EditQuotation/></ProtectedRoute>} />
+          <Route path="/admin/proforma/:id" element={<ProtectedRoute><EditProforma/></ProtectedRoute>} />
+          
+          {/* NCNDA system */}
           <Route path="/admin/ncnda" element={<ProtectedRoute><AdminNcndaPage/></ProtectedRoute>} />
           <Route path="/admin/ncnda/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
           <Route path="/admin/ncnda/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          
+          {/* Dashboard */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/*" element={<MainShell/>} />
         </Routes>
