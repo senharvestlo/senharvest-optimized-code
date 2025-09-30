@@ -75,7 +75,6 @@ function money(v, curr='USD') {
 }
 
 export default function ProformaQwen({ initialData, onSave, onBack, liveData }) {
-  const [showEditor, setShowEditor] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   
   // Utilise liveData si fourni (pour preview temps réel), sinon initialData
@@ -103,7 +102,6 @@ export default function ProformaQwen({ initialData, onSave, onBack, liveData }) 
 
   const handleSave = async () => {
     if (onSave) await onSave(data);
-    setShowEditor(false);
   };
 
   const handlePreview = async () => {
@@ -126,14 +124,9 @@ export default function ProformaQwen({ initialData, onSave, onBack, liveData }) 
       <div className="no-print flex items-center justify-between gap-2 mb-4 bg-white p-3 rounded border">
         <div className="flex gap-2">
           {onBack && <button onClick={onBack} className="border py-2 px-4 rounded hover:bg-gray-50">← Retour</button>}
-          {!liveData && (
-            <button onClick={() => setShowEditor(!showEditor)} className="border py-2 px-4 rounded hover:bg-gray-50">
-              {showEditor ? '👁️ Voir Document' : '✏️ ' + t.edit}
-            </button>
-          )}
         </div>
         <div className="flex gap-2">
-          <button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">💾 {t.save}</button>
+          {onSave && <button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">💾 {t.save}</button>}
           <button onClick={handlePreview} className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded">👁️ {t.preview}</button>
           <button onClick={() => exportHtmlToPdf(id, `${data?.number||'proforma'}.pdf`)} className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">📥 {t.download}</button>
         </div>
@@ -154,107 +147,6 @@ export default function ProformaQwen({ initialData, onSave, onBack, liveData }) 
               <button onClick={closePreview} className="border py-2 px-4 rounded hover:bg-gray-50">Fermer</button>
               <button onClick={() => { exportHtmlToPdf(id, `${data?.number||'proforma'}.pdf`); closePreview(); }} className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">📥 Télécharger</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Éditeur rapide - caché si liveData (formulaire externe) */}
-      {showEditor && !liveData && (
-        <div className="no-print bg-white border rounded-lg p-6 mb-4 space-y-4">
-          <h3 className="text-lg font-bold">Édition rapide</h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <input className="border rounded px-3 py-2" placeholder="Numéro" value={data.number} onChange={e => updateField('number', e.target.value)} />
-            <input className="border rounded px-3 py-2" placeholder="Date" value={data.date} onChange={e => updateField('date', e.target.value)} />
-            <input className="border rounded px-3 py-2" placeholder="Validité" value={data.validity} onChange={e => updateField('validity', e.target.value)} />
-            <select className="border rounded px-3 py-2" value={data.currency} onChange={e => updateField('currency', e.target.value)}>
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="CAD">CAD</option>
-              <option value="XOF">XOF (CFA)</option>
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h4 className="font-semibold mb-2">Vendeur</h4>
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Nom" value={data.seller?.name || ''} onChange={e => updateField('seller.name', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Adresse" value={data.seller?.address || ''} onChange={e => updateField('seller.address', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Téléphone" value={data.seller?.phone || ''} onChange={e => updateField('seller.phone', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full" placeholder="Email" value={data.seller?.email || ''} onChange={e => updateField('seller.email', e.target.value)} />
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">Acheteur</h4>
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Nom" value={data.buyer?.name || ''} onChange={e => updateField('buyer.name', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Adresse" value={data.buyer?.address || ''} onChange={e => updateField('buyer.address', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Téléphone" value={data.buyer?.phone || ''} onChange={e => updateField('buyer.phone', e.target.value)} />
-              <input className="border rounded px-3 py-2 w-full" placeholder="Email" value={data.buyer?.email || ''} onChange={e => updateField('buyer.email', e.target.value)} />
-            </div>
-          </div>
-
-          <div>
-            <h4 className="font-semibold mb-2">Coordonnées bancaires</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <input className="border rounded px-3 py-2" placeholder="Banque" value={data.bank?.bankName || ''} onChange={e => updateField('bank.bankName', e.target.value)} />
-              <input className="border rounded px-3 py-2" placeholder="Bénéficiaire" value={data.bank?.beneficiary || ''} onChange={e => updateField('bank.beneficiary', e.target.value)} />
-              <input className="border rounded px-3 py-2" placeholder="IBAN" value={data.bank?.iban || ''} onChange={e => updateField('bank.iban', e.target.value)} />
-              <input className="border rounded px-3 py-2" placeholder="SWIFT/BIC" value={data.bank?.swift || ''} onChange={e => updateField('bank.swift', e.target.value)} />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">Produits</h4>
-              <button onClick={addLine} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">+ Ajouter ligne</button>
-            </div>
-            {(data.lines || []).map((line, idx) => (
-              <div key={idx} className="grid grid-cols-7 gap-2 mb-2">
-                <input className="border rounded px-2 py-1" placeholder="Produit" value={line.product || ''} onChange={e => updateField(`lines.${idx}.product`, e.target.value)} />
-                <input className="border rounded px-2 py-1" placeholder="Qualité" value={line.quality || ''} onChange={e => updateField(`lines.${idx}.quality`, e.target.value)} />
-                <input className="border rounded px-2 py-1" type="number" placeholder="Qté" value={line.qty || 0} onChange={e => updateField(`lines.${idx}.qty`, e.target.value)} />
-                <input className="border rounded px-2 py-1" placeholder="Unité" value={line.unit || 'MT'} onChange={e => updateField(`lines.${idx}.unit`, e.target.value)} />
-                <input className="border rounded px-2 py-1" placeholder="Emballage" value={line.pack || ''} onChange={e => updateField(`lines.${idx}.pack`, e.target.value)} />
-                <input className="border rounded px-2 py-1" type="number" placeholder="Prix" value={line.unitPrice || 0} onChange={e => updateField(`lines.${idx}.unitPrice`, e.target.value)} />
-                <button onClick={() => removeLine(idx)} className="bg-red-600 text-white px-2 rounded text-sm">✕</button>
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">Termes & Conditions</h4>
-              <button onClick={addTerm} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">+ Ajouter terme</button>
-            </div>
-            {(data.terms || []).map((term, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <textarea 
-                  className="border rounded px-3 py-2 w-full" 
-                  placeholder="Terme ou condition"
-                  value={term || ''} 
-                  onChange={e => updateField(`terms.${idx}`, e.target.value)}
-                  rows={2}
-                />
-                <button onClick={() => removeTerm(idx)} className="bg-red-600 text-white px-2 rounded text-sm h-10">✕</button>
-              </div>
-            ))}
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold">Notes</h4>
-              <button onClick={addNote} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">+ Ajouter note</button>
-            </div>
-            {(data.notes || []).map((note, idx) => (
-              <div key={idx} className="flex gap-2 mb-2">
-                <input 
-                  className="border rounded px-3 py-2 w-full" 
-                  placeholder="Note"
-                  value={note || ''} 
-                  onChange={e => updateField(`notes.${idx}`, e.target.value)}
-                />
-                <button onClick={() => removeNote(idx)} className="bg-red-600 text-white px-2 rounded text-sm">✕</button>
-              </div>
-            ))}
           </div>
         </div>
       )}
