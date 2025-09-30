@@ -126,6 +126,34 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
     }));
   };
 
+  const addTerm = () => {
+    setData(prev => ({
+      ...prev,
+      terms: [...(prev.terms || []), '']
+    }));
+  };
+
+  const removeTerm = (idx) => {
+    setData(prev => ({
+      ...prev,
+      terms: (prev.terms || []).filter((_, i) => i !== idx)
+    }));
+  };
+
+  const addNote = () => {
+    setData(prev => ({
+      ...prev,
+      notes: [...(prev.notes || []), '']
+    }));
+  };
+
+  const removeNote = (idx) => {
+    setData(prev => ({
+      ...prev,
+      notes: (prev.notes || []).filter((_, i) => i !== idx)
+    }));
+  };
+
   const handleSave = async () => {
     if (onSave) await onSave(data);
     setShowEditor(false);
@@ -206,6 +234,43 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
                 <input className="border rounded px-2 py-1" placeholder="Emballage" value={line.pack || ''} onChange={e => updateField(`lines.${idx}.pack`, e.target.value)} />
                 <input className="border rounded px-2 py-1" type="number" placeholder="Prix" value={line.unitPrice || 0} onChange={e => updateField(`lines.${idx}.unitPrice`, e.target.value)} />
                 <button onClick={() => removeLine(idx)} className="bg-red-600 text-white px-2 rounded text-sm">✕</button>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-semibold">Termes & Conditions</h4>
+              <button onClick={addTerm} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">+ Ajouter terme</button>
+            </div>
+            {(data.terms || []).map((term, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <textarea 
+                  className="border rounded px-3 py-2 w-full" 
+                  placeholder="Terme ou condition"
+                  value={term || ''} 
+                  onChange={e => updateField(`terms.${idx}`, e.target.value)}
+                  rows={2}
+                />
+                <button onClick={() => removeTerm(idx)} className="bg-red-600 text-white px-2 rounded text-sm h-10">✕</button>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="font-semibold">Notes</h4>
+              <button onClick={addNote} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">+ Ajouter note</button>
+            </div>
+            {(data.notes || []).map((note, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <input 
+                  className="border rounded px-3 py-2 w-full" 
+                  placeholder="Note"
+                  value={note || ''} 
+                  onChange={e => updateField(`notes.${idx}`, e.target.value)}
+                />
+                <button onClick={() => removeNote(idx)} className="bg-red-600 text-white px-2 rounded text-sm">✕</button>
               </div>
             ))}
           </div>
