@@ -80,9 +80,12 @@ export default function AdminDashboard() {
         </div>
       </div>
       
-      {/* Bouton de déconnexion */}
-      <div className="mt-6">
-        <button onClick={logout} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+      {/* Boutons navigation */}
+      <div className="mt-6 flex gap-3">
+        <button onClick={() => navigate('/')} className="px-4 py-2 border rounded hover:bg-gray-50">
+          ← Retour au site web
+        </button>
+        <button onClick={async () => { await logout(); navigate('/admin/logout'); }} className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
           Se déconnecter
         </button>
       </div>

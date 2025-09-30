@@ -8,6 +8,7 @@ import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
 import AdminDashboard from './components/pages/admin/AdminDashboard';
 import AdminNcndaPage from './components/pages/admin/AdminNcndaPage';
+import LogoutPage from './components/pages/admin/LogoutPage';
 import AdminNcndas from './components/admin/AdminNcndas';
 import AdminDocEditor from './components/admin/AdminDocEditor';
 import DocsList from './pages/admin/DocsList';
@@ -194,6 +195,7 @@ function App() {
           
           {/* Dashboard */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/logout" element={<LogoutPage />} />
           <Route path="/*" element={<MainShell/>} />
         </Routes>
         <WhatsAppFloat />

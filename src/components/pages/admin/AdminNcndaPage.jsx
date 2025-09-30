@@ -24,14 +24,18 @@ export default function AdminNcndaPage(){
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Bouton retour */}
+      <div className="mb-4">
+        <button onClick={() => nav('/admin')} className="px-3 py-2 border rounded hover:bg-gray-50">
+          ← Retour au Dashboard
+        </button>
+      </div>
+
       <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Documents NCNDA</h1>
         <div className="flex gap-2">
-          <button className="border rounded px-3 py-2 bg-blue-600 text-white hover:bg-blue-700" onClick={()=>nav("/admin/ncnda/new")}>
+          <button className="border rounded px-3 py-2 bg-green-600 text-white hover:bg-green-700" onClick={()=>nav("/admin/ncnda/new")}>
             + Nouveau NCNDA
-          </button>
-          <button className="border rounded px-3 py-2" onClick={()=>nav("/admin")}>
-            ← Retour
           </button>
         </div>
       </div>
