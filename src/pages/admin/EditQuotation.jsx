@@ -136,7 +136,7 @@ export default function EditQuotation() {
 
       {/* Preview PDF */}
       <div className="bg-white border rounded sticky top-4">
-        <QuotationQwen initialData={data} onSave={onSave} onBack={()=>nav('/admin/docs?type=quotation')} />
+        <QuotationQwen liveData={data} onSave={onSave} onBack={()=>nav('/admin/docs?type=quotation')} />
       </div>
     </div>
   );

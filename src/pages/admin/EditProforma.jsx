@@ -151,7 +151,7 @@ export default function EditProforma() {
 
       {/* Preview PDF */}
       <div className="bg-white border rounded sticky top-4">
-        <ProformaQwen initialData={data} onSave={onSave} onBack={()=>nav('/admin/docs?type=proforma')} />
+        <ProformaQwen liveData={data} onSave={onSave} onBack={()=>nav('/admin/docs?type=proforma')} />
       </div>
     </div>
   );

@@ -74,10 +74,12 @@ function money(v, curr='USD') {
   return `${sym}${n.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})} ${curr}`;
 }
 
-export default function ProformaQwen({ initialData, onSave, onBack }) {
+export default function ProformaQwen({ initialData, onSave, onBack, liveData }) {
   const [showEditor, setShowEditor] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [data, setData] = useState(initialData || {
+  
+  // Utilise liveData si fourni (pour preview temps réel), sinon initialData
+  const data = liveData || initialData || {
     lang: 'fr',
     number: `PF-${new Date().toISOString().slice(0,10)}`,
     date: new Date().toLocaleDateString('fr-FR'),
@@ -90,7 +92,7 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
     lines: [{ product:'', quality:'', qty:0, unit:'MT', pack:'', hsCode:'', unitPrice:0 }],
     terms: ['Proforma non fiscale', 'Incoterms FOB/CIF selon accord', 'Paiement: 30% T/T à la commande, 70% avant expédition'],
     notes: ['Document commercial pour douane et B/L']
-  });
+  };
 
   const lang = data?.lang || 'fr';
   const t = useMemo(() => T[lang], [lang]);
@@ -98,62 +100,6 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
   const id = 'proforma-qwen';
   const curr = data?.currency || 'USD';
   const total = (data?.lines||[]).reduce((s,l)=> s + Number(l.qty||0)*Number(l.unitPrice||0), 0);
-
-  const updateField = (path, value) => {
-    setData(prev => {
-      const newData = { ...prev };
-      const keys = path.split('.');
-      let obj = newData;
-      for (let i = 0; i < keys.length - 1; i++) {
-        obj[keys[i]] = { ...obj[keys[i]] };
-        obj = obj[keys[i]];
-      }
-      obj[keys[keys.length - 1]] = value;
-      return newData;
-    });
-  };
-
-  const addLine = () => {
-    setData(prev => ({
-      ...prev,
-      lines: [...(prev.lines || []), { product:'', quality:'', qty:0, unit:'MT', pack:'', hsCode:'', unitPrice:0 }]
-    }));
-  };
-
-  const removeLine = (idx) => {
-    setData(prev => ({
-      ...prev,
-      lines: (prev.lines || []).filter((_, i) => i !== idx)
-    }));
-  };
-
-  const addTerm = () => {
-    setData(prev => ({
-      ...prev,
-      terms: [...(prev.terms || []), '']
-    }));
-  };
-
-  const removeTerm = (idx) => {
-    setData(prev => ({
-      ...prev,
-      terms: (prev.terms || []).filter((_, i) => i !== idx)
-    }));
-  };
-
-  const addNote = () => {
-    setData(prev => ({
-      ...prev,
-      notes: [...(prev.notes || []), '']
-    }));
-  };
-
-  const removeNote = (idx) => {
-    setData(prev => ({
-      ...prev,
-      notes: (prev.notes || []).filter((_, i) => i !== idx)
-    }));
-  };
 
   const handleSave = async () => {
     if (onSave) await onSave(data);
@@ -180,9 +126,11 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
       <div className="no-print flex items-center justify-between gap-2 mb-4 bg-white p-3 rounded border">
         <div className="flex gap-2">
           {onBack && <button onClick={onBack} className="border py-2 px-4 rounded hover:bg-gray-50">← Retour</button>}
-          <button onClick={() => setShowEditor(!showEditor)} className="border py-2 px-4 rounded hover:bg-gray-50">
-            {showEditor ? '👁️ Voir Document' : '✏️ ' + t.edit}
-          </button>
+          {!liveData && (
+            <button onClick={() => setShowEditor(!showEditor)} className="border py-2 px-4 rounded hover:bg-gray-50">
+              {showEditor ? '👁️ Voir Document' : '✏️ ' + t.edit}
+            </button>
+          )}
         </div>
         <div className="flex gap-2">
           <button onClick={handleSave} className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">💾 {t.save}</button>
@@ -210,8 +158,8 @@ export default function ProformaQwen({ initialData, onSave, onBack }) {
         </div>
       )}
 
-      {/* Éditeur rapide */}
-      {showEditor && (
+      {/* Éditeur rapide - caché si liveData (formulaire externe) */}
+      {showEditor && !liveData && (
         <div className="no-print bg-white border rounded-lg p-6 mb-4 space-y-4">
           <h3 className="text-lg font-bold">Édition rapide</h3>
           
