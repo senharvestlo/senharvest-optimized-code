@@ -40,9 +40,9 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || isOwner();
     }
 
-    // Spécifications produits (admin only pour écrire ; lecture possible si connecté)
-    match /productSpecs/{id} {
-      allow read: if isSignedIn();
+    // Spécifications produits (lecture publique ; admin only pour écrire)
+    match /product_specs/{id} {
+      allow read: if true; // Public pour affichage sur site vitrine
       allow create, update, delete: if isAdmin();
     }
 

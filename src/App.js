@@ -13,6 +13,8 @@ import AdminDocEditor from './components/admin/AdminDocEditor';
 import DocsList from './pages/admin/DocsList';
 import EditQuotation from './pages/admin/EditQuotation';
 import EditProforma from './pages/admin/EditProforma';
+import SpecsList from './pages/admin/specs/SpecsList';
+import EditSpec from './pages/admin/specs/EditSpec';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
@@ -183,6 +185,10 @@ function App() {
           
           {/* NCNDA system */}
           <Route path="/admin/ncnda" element={<ProtectedRoute><AdminNcndaPage/></ProtectedRoute>} />
+          
+          {/* Product Specifications */}
+          <Route path="/admin/specs" element={<ProtectedRoute><SpecsList/></ProtectedRoute>} />
+          <Route path="/admin/specs/:id" element={<ProtectedRoute><EditSpec/></ProtectedRoute>} />
           <Route path="/admin/ncnda/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
           <Route path="/admin/ncnda/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
           

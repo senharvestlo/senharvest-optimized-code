@@ -1,19 +1,16 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
-import { getSpecs as getLocalSpecs } from '../../services/productSpecsService';
-// Removed getProductSpecs import
-import SpecsModal from '../products/SpecsModal';
+import ProductSpecsModal from '../products/ProductSpecsModal';
 
 /**
  * Products Page Component
  * Displays product catalog with filtering and inquiry options
  */
 function Products({ t, lang, onOpenForm }) {
-  const [specProduct, setSpecProduct] = useState(null);
-  const [specList, setSpecList] = useState([]);
-  const [specText, setSpecText] = useState('');
+  const [specModalOpen, setSpecModalOpen] = useState(false);
+  const [specProductKey, setSpecProductKey] = useState(null);
 
   const products = useMemo(() =>
     BASE_PRODUCTS.map((p) => ({
@@ -24,8 +21,6 @@ function Products({ t, lang, onOpenForm }) {
     [lang]
   );
 
-  useEffect(() => {}, []);
-
   const getOriginColor = (origin) => {
     const colorMap = {
       "Senegal": "green",
@@ -34,13 +29,6 @@ function Products({ t, lang, onOpenForm }) {
       "Asia": "purple"
     };
     return colorMap[origin] || "green";
-  };
-
-  const openSpecs = async (product) => {
-    setSpecProduct(product);
-    const local = getLocalSpecs(product.key);
-    setSpecList(local || []);
-    setSpecText('');
   };
 
   return (
@@ -101,7 +89,7 @@ function Products({ t, lang, onOpenForm }) {
                     variant="secondary"
                     size="sm"
                     className="w-full"
-                    onClick={() => openSpecs(product)}
+                    onClick={() => { setSpecProductKey(product.key); setSpecModalOpen(true); }}
                   >
                     {lang === 'fr' ? 'Voir spécifications' : 'View specifications'}
                   </Button>
@@ -112,14 +100,13 @@ function Products({ t, lang, onOpenForm }) {
         </div>
       </Container>
 
-      {/* Specs Modal */}
-      {specProduct && (
-        <SpecsModal
-          product={specProduct}
-          specs={specText ? [specText] : specList}
-          onClose={() => setSpecProduct(null)}
-        />
-      )}
+      {/* Product Specs Modal */}
+      <ProductSpecsModal
+        productKey={specProductKey}
+        open={specModalOpen}
+        onClose={()=>setSpecModalOpen(false)}
+        lang={lang}
+      />
     </div>
   );
 }

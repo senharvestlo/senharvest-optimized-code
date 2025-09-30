@@ -68,7 +68,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Spécifications Produits */}
-        <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => alert('Section en développement')}>
+        <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => navigate('/admin/specs')}>
           <h3 className="text-lg font-semibold mb-2">🌾 Spécifications Produits</h3>
           <p className="text-sm text-gray-600">Gérer les spécifications techniques des produits</p>
         </div>
