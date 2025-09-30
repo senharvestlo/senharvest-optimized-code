@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getTradeDoc } from "../../services/firebaseService";
-import ProformaHtmlEditor from "../pdf/ProformaHtmlEditor";
-import QuotationHtmlEditor from "../pdf/QuotationHtmlEditor";
+import ProformaQwenWrapper from "../pdf/ProformaQwenWrapper";
+import QuotationQwenWrapper from "../pdf/QuotationQwenWrapper";
 import NcndaEditor from "./NcndaEditor";
 
 export default function AdminDocEditor({ id: propId }) {
@@ -41,11 +41,11 @@ export default function AdminDocEditor({ id: propId }) {
       )}
       <div className="bg-white border rounded">
         {type === "proforma" ? (
-          <ProformaHtmlEditor docId={id || null} onBack={()=>navigate(-1)} />
+          <ProformaQwenWrapper docId={id || null} onBack={()=>navigate(-1)} />
         ) : type === "ncnda" ? (
           <NcndaEditor docId={id || null} onBack={()=>navigate(-1)} />
         ) : (
-          <QuotationHtmlEditor docId={id || null} onBack={()=>navigate(-1)} />
+          <QuotationQwenWrapper docId={id || null} onBack={()=>navigate(-1)} />
         )}
       </div>
     </div>
