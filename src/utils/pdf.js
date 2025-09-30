@@ -1,3 +1,5 @@
+import html2pdf from 'html2pdf.js';
+
 // Simple helper for consistent html2pdf usage + print safety
 export function saveElementAsPDF(el, filename = 'document.pdf') {
   const opt = {
@@ -8,7 +10,7 @@ export function saveElementAsPDF(el, filename = 'document.pdf') {
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
     pagebreak:    { mode: ['css', 'legacy'] }, // respects .page-break rules
   };
-  return window.html2pdf().set(opt).from(el).save();
+  return html2pdf().set(opt).from(el).save();
 }
 
 export async function elementToPdfBlob(el) {
@@ -19,7 +21,9 @@ export async function elementToPdfBlob(el) {
     jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
     pagebreak: { mode:['css','legacy'] },
   };
-  return await window.html2pdf().set(opt).from(el).outputPdf('blob');
+  const pdf = await html2pdf().set(opt).from(el).toPdf().get('pdf');
+  const buffer = pdf.output('arraybuffer');
+  return new Blob([buffer], { type: 'application/pdf' });
 }
 
 export const printStyles = `

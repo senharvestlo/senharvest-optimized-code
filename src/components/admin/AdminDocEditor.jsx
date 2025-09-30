@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { getTradeDoc } from "../../services/firebaseService";
 import ProformaHtmlEditor from "../pdf/ProformaHtmlEditor";
 import QuotationHtmlEditor from "../pdf/QuotationHtmlEditor";
+import NcndaEditor from "./NcndaEditor";
 
 export default function AdminDocEditor({ id: propId }) {
   const params = useParams();
+  const location = useLocation();
   const routeId = params?.id || null;
   const id = propId != null ? propId : routeId;
   const navigate = useNavigate();
 
-  const [type, setType] = useState("proforma");
+  // Détecter le type depuis la route
+  const isNcndaRoute = location.pathname.includes('/ncnda');
+  const initialType = isNcndaRoute ? "ncnda" : "proforma";
+  
+  const [type, setType] = useState(initialType);
   const [loading, setLoading] = useState(Boolean(id));
 
   useEffect(()=>{ (async()=>{
@@ -24,7 +30,7 @@ export default function AdminDocEditor({ id: propId }) {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-4">
-      {!id && (
+      {!id && !isNcndaRoute && (
         <div className="bg-white border rounded p-4">
           <label className="mr-3">Type :</label>
           <select className="border rounded px-2 py-1" value={type} onChange={e=>setType(e.target.value)}>
@@ -36,6 +42,8 @@ export default function AdminDocEditor({ id: propId }) {
       <div className="bg-white border rounded">
         {type === "proforma" ? (
           <ProformaHtmlEditor docId={id || null} onBack={()=>navigate(-1)} />
+        ) : type === "ncnda" ? (
+          <NcndaEditor docId={id || null} onBack={()=>navigate(-1)} />
         ) : (
           <QuotationHtmlEditor docId={id || null} onBack={()=>navigate(-1)} />
         )}

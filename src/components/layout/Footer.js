@@ -1,24 +1,15 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container } from '../ui';
-import SimpleAdminLogin from '../auth/SimpleAdminLogin';
+import FooterAdminTrigger from './FooterAdminTrigger';
+import AdminLoginModal from '../pages/admin/AdminLoginModal';
 
 /**
  * Footer Component
  * Site footer with company information and links
  */
 function Footer({ t, lang, setPage }) {
-  const [clickCount, setClickCount] = useState(0);
-
-  const handleFooterLogoClick = () => {
-    setClickCount(prev => prev + 1);
-    if (clickCount >= 2) { // 3 clics (0, 1, 2)
-      setPage('admin');
-      setClickCount(0);
-    }
-    // Reset le compteur après 3 secondes
-    setTimeout(() => setClickCount(0), 3000);
-  };
+  const [openLogin, setOpenLogin] = useState(false);
 
   const handleFooterCompanyNameClick = () => {
     setPage('home');
@@ -43,7 +34,7 @@ function Footer({ t, lang, setPage }) {
           {/* Company Info */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 flex items-center justify-center">
-              <SimpleAdminLogin onLogin={() => window.location.reload()} />
+              <FooterAdminTrigger onOpen={() => setOpenLogin(true)} />
             </div>
             <button 
               onClick={handleFooterCompanyNameClick}
@@ -93,6 +84,7 @@ function Footer({ t, lang, setPage }) {
           </div>
         </div>
       </Container>
+      {openLogin && <AdminLoginModal onClose={() => setOpenLogin(false)} />}
     </footer>
   );
 }

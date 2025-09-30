@@ -11,7 +11,8 @@ export default function AdminDocs(){
   async function load() {
     setLoading(true);
     const { items } = await listTradeDocs();
-    setItems(items);
+    // Exclure les NCNDA de cette page
+    setItems(items.filter(item => item.type !== 'ncnda'));
     setLoading(false);
   }
   useEffect(()=>{ load(); },[]);

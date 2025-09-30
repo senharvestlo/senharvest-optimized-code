@@ -20,7 +20,14 @@ service cloud.firestore {
     }
 
     // ================== COLLECTIONS ===================
-    // Documents commerciaux : proformas / quotations / ncndas
+    // Documents commerciaux unifiés : trade_docs (proformas / quotations / ncndas)
+    match /trade_docs/{id} {
+      allow read: if isAdmin() || isOwner();
+      allow create: if isAdmin() || isOwnerNew(request.resource.data);
+      allow update, delete: if isAdmin() || isOwner();
+    }
+    
+    // Collections séparées (si encore utilisées)
     match /proformas/{id} {
       allow read: if isAdmin() || isOwner();
       allow create: if isAdmin() || isOwnerNew(request.resource.data);

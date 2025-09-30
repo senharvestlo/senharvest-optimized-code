@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { printStyles, saveElementAsPDF, elementToPdfBlob } from '../../utils/pdf';
-import { saveTradeDoc, getTradeDoc, uploadTradePdf } from '../../services/firebaseService';
+import { printStyles, saveElementAsPDF } from '../../utils/pdf';
+import { saveTradeDoc, getTradeDoc } from '../../services/firebaseService';
 
 const currencySign = (c) => ({ USD:'$', EUR:'€', XOF:'CFA', XAF:'FCFA', CAD:'$' }[c] || c || '');
 const fmt = (n) => Number(n||0).toLocaleString(undefined,{ minimumFractionDigits:2, maximumFractionDigits:2 });
@@ -68,21 +68,14 @@ export default function ProformaHtmlEditor({ docId=null, onBack }) {
     alert('Proforma enregistrée');
   }
 
-  async function onGenerate() {
+  async function onDownloadPdf() {
     if (!ref.current) return;
-    await saveElementAsPDF(ref.current, `proforma-${state.number}.pdf`);
-  }
-
-  async function onGenerateUpload() {
-    if (!ref.current) return;
-    const blob = await elementToPdfBlob(ref.current);
-    const id = await saveTradeDoc(docId, {
-      type:'proforma', number:state.number, date:state.date, currency:state.currency,
-      html: ref.current.outerHTML, data: state
-    });
-    const url = await uploadTradePdf(id, blob);
-    await saveTradeDoc(id, { pdfUrl:url });
-    alert('PDF uploadé');
+    try {
+      await saveElementAsPDF(ref.current, `proforma-${state.number}.pdf`);
+    } catch (error) {
+      console.error('Erreur génération PDF:', error);
+      alert('Erreur lors de la génération du PDF');
+    }
   }
 
   if (loading) return <div className="p-6">Chargement…</div>;
@@ -96,8 +89,7 @@ export default function ProformaHtmlEditor({ docId=null, onBack }) {
         <div className="no-print max-w-5xl mx-auto mb-4 bg-white border rounded-lg p-4 flex flex-wrap gap-2">
           <button className="border rounded px-3 py-1" onClick={onBack}>← Retour</button>
           <button className="border rounded px-3 py-1" onClick={onSave}>💾 Enregistrer</button>
-          <button className="border rounded px-3 py-1" onClick={onGenerate}>🖨️ PDF</button>
-          <button className="border rounded px-3 py-1" onClick={onGenerateUpload}>📤 PDF + Upload</button>
+          <button className="border rounded px-3 py-1 bg-blue-600 text-white hover:bg-blue-700" onClick={onDownloadPdf}>📥 Télécharger PDF</button>
 
           <div className="ml-auto grid grid-cols-2 md:grid-cols-4 gap-2">
             <input className="border rounded px-2 py-1" placeholder="PF Number" value={state.number} onChange={e=>setField('number', e.target.value)} />

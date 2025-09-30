@@ -1,6 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { createNcnda, updateNcnda } from '../../services/ncndaService';
+import { saveTradeDoc, getTradeDoc } from '../../services/firebaseService';
 
 /* ========= Utilitaires PDF sans about:blank ========= */
 // (1) Téléchargement propre
@@ -64,29 +64,47 @@ async function elementToPdfBlob(el, filename) {
 }
 /* ========= Fin utilitaires ========= */
 
-export default function NcndaEditor({ initial, onSaved }) {
-  const [lang, setLang] = useState(initial?.language || 'fr'); // 'fr' | 'en'
+export default function NcndaEditor({ docId, onBack }) {
+  const [lang, setLang] = useState('fr'); // 'fr' | 'en'
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(Boolean(docId));
   const [data, setData] = useState(() => ({
-    number: initial?.number || `NCNDA-${new Date().toISOString().slice(0,10)}-${Date.now()}`,
-    effectiveDate: initial?.effectiveDate || new Date().toISOString().slice(0,10),
-    termYears: initial?.termYears ?? 3,  // durée du contrat
+    type: 'ncnda',
+    number: `NCNDA-${new Date().toISOString().slice(0,10)}-${Date.now()}`,
+    effectiveDate: new Date().toISOString().slice(0,10),
+    termYears: 3,
     iccUrl: 'https://www.iccwbo.org',
     broker: {
-      fullName: initial?.broker?.fullName || 'Mr. Abdou Lahat Lo',
-      title: initial?.broker?.title || 'Manager',
-      corporation: initial?.broker?.corporation || 'SenHarvest LLC',
-      address: initial?.broker?.address || '1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA',
-      phone: initial?.broker?.phone || '+1 819 319 8464',
-      email: initial?.broker?.email || 'manager@senharvest.com',
+      fullName: 'Mr. Abdou Lahat Lo',
+      title: 'Manager',
+      corporation: 'SenHarvest LLC',
+      address: '1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA',
+      phone: '+1 819 319 8464',
+      email: 'manager@senharvest.com',
     },
-    seller: initial?.seller || { fullName: '', title: '', corporation: '', address: '', phone: '', email: '' },
-    buyer:  initial?.buyer  || { fullName: '', title: '', corporation: '', address: '', phone: '', email: '' },
-    clauses: initial?.clauses || [], // si tu veux des clauses custom par défaut
-    id: initial?.id || null,
-    language: initial?.language || 'fr',
+    seller: { fullName: '', title: '', corporation: '', address: '', phone: '', email: '' },
+    buyer:  { fullName: '', title: '', corporation: '', address: '', phone: '', email: '' },
+    clauses: [],
+    language: 'fr',
   }));
   const docRef = useRef(null);
+
+  // Charger le document existant
+  useEffect(() => {
+    if (!docId) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const doc = await getTradeDoc(docId);
+        if (doc) {
+          setData(doc);
+          setLang(doc.language || 'fr');
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [docId]);
 
   const t = useMemo(() => {
     const FR = {
@@ -186,16 +204,24 @@ export default function NcndaEditor({ initial, onSaved }) {
   const onSave = async () => {
     setBusy(true);
     try {
-      const payload = { ...data, language: lang };
-      if (data.id) {
-        await updateNcnda(data.id, payload);
-      } else {
-        const id = await createNcnda(payload);
-        payload.id = id;
-        setData(payload);
+      const payload = { 
+        ...data, 
+        type: 'ncnda',
+        language: lang,
+        docNumber: data.number,
+        // Informations pour l'affichage dans la liste
+        buyerCompany: data.buyer?.corporation || '',
+        status: data.status || 'draft',
+      };
+      // saveTradeDoc(id, data) - id en premier
+      const savedId = await saveTradeDoc(docId || null, payload);
+      if (!docId) {
+        setData(prev => ({ ...prev, id: savedId }));
       }
-      onSaved?.(payload);
       alert(lang === 'fr' ? 'NCNDA enregistré.' : 'NCNDA saved.');
+    } catch (error) {
+      console.error('Erreur sauvegarde NCNDA:', error);
+      alert(lang === 'fr' ? `Erreur: ${error.message}` : `Error: ${error.message}`);
     } finally {
       setBusy(false);
     }
@@ -210,6 +236,8 @@ export default function NcndaEditor({ initial, onSaved }) {
     const blob = await elementToPdfBlob(docRef.current, `${data.number}.pdf`);
     printPdfBlob(blob);
   };
+
+  if (loading) return <div className="p-6">Chargement du document...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-4">
@@ -247,8 +275,13 @@ export default function NcndaEditor({ initial, onSaved }) {
         />
 
         <div className="ml-auto flex gap-2">
-          <button disabled={busy} onClick={onSave} className="px-3 py-2 rounded bg-emerald-600 text-white">
-            {t.save}
+          {onBack && (
+            <button onClick={onBack} className="px-3 py-2 rounded border bg-gray-100">
+              ← Retour
+            </button>
+          )}
+          <button disabled={busy} onClick={onSave} className="px-3 py-2 rounded bg-emerald-600 text-white disabled:opacity-50">
+            {busy ? '⏳' : t.save}
           </button>
           <button onClick={onDownload} className="px-3 py-2 rounded bg-blue-600 text-white">
             {t.generate}
@@ -326,28 +359,55 @@ export default function NcndaEditor({ initial, onSaved }) {
       {/* ========== APERÇU / DOCUMENT (basé sur le template QWEN, adapté) ========== */}
       <div ref={docRef} id="ncnda-document" className="max-w-5xl mx-auto bg-white shadow border rounded p-8 text-sm leading-relaxed">
         <style>{`
-          @page { size: A4; margin: 12mm; }
-          @media print { .no-print { display:none !important } body{-webkit-print-color-adjust:exact;print-color-adjust:exact} }
+          @page { size: A4; margin: 15mm; }
+          @media print { 
+            .no-print { display:none !important; } 
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .page-break { page-break-before: always; }
+            .avoid-break { page-break-inside: avoid; }
+          }
           .signature-line { border-top: 1px solid #000; width: 80%; margin: 40px auto 8px; }
-          .clause { margin-bottom: 1.2rem; text-align: justify; }
-          ol li { margin-bottom: 0.8rem; }
-          .icc-logo-container { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+          .clause { margin-bottom: 1.2rem; text-align: justify; line-height: 1.6; }
+          ol { counter-reset: item; list-style-type: none; padding-left: 0; }
+          ol li { 
+            counter-increment: item;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+          }
+          ol li:before { 
+            content: counter(item) ". ";
+            font-weight: bold;
+            min-width: 2em;
+            margin-right: 0.5em;
+          }
+          .icc-logo-container { 
+            display: flex; 
+            align-items: center; 
+            gap: 16px; 
+            margin-bottom: 24px; 
+          }
+          .icc-logo-container img {
+            width: 80px;
+            height: auto;
+            object-fit: contain;
+          }
         `}</style>
 
         {/* Logo + titre */}
         <div className="icc-logo-container">
           <img
-            src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/International_Chamber_of_Commerce_Logo.svg/200px-International_Chamber_of_Commerce_Logo.svg.png"
+            src="/icc logo.png"
             alt="ICC - International Chamber of Commerce"
-            className="h-14"
+            crossOrigin="anonymous"
           />
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">
+            <h1 className="text-xl font-bold text-blue-800">
               {lang === 'fr'
                 ? 'ACCORD DE NON-CONTOURNEMENT, NON-DIVULGATION ET COLLABORATION'
                 : 'NON-CIRCUMVENTION, NON-DISCLOSURE AND WORKING AGREEMENT'}
             </h1>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs mt-1">
               {t.subtitle}
             </p>
           </div>
@@ -360,20 +420,23 @@ export default function NcndaEditor({ initial, onSaved }) {
             : `The undersigned Parties agree on ${data.effectiveDate} to define certain parameters of their future legal obligations. In consideration of the mutual promises herein, the Parties agree as follows:`}
         </p>
 
-        {/* Clauses */}
-        <ol className="list-decimal ml-6 space-y-4 mt-6">
-          {clauses.map((c, i) => (<li key={i} className="clause">{c}</li>))}
-          <li className="clause"><strong>{t.termText(data.termYears)}</strong></li>
-          <li className="clause">{t.iccNote}</li>
+        {/* Clauses - Page 1 */}
+        <ol className="mt-6">
+          {clauses.map((c, i) => (<li key={i}><span className="clause">{c}</span></li>))}
+          <li><span className="clause"><strong>{t.termText(data.termYears)}</strong></span></li>
+          <li><span className="clause">{t.iccNote}</span></li>
         </ol>
 
         {/* EDT */}
-        <div className="bg-gray-50 p-5 rounded border mt-6">
+        <div className="bg-gray-50 p-4 rounded border mt-6 avoid-break">
           <h2 className="font-semibold text-gray-800 mb-2">{t.edtHeader}</h2>
-          <p className="clause">{t.edtText}</p>
+          <p className="text-sm leading-relaxed">{t.edtText}</p>
         </div>
 
-        {/* Parties */}
+        {/* Page break avant les parties */}
+        <div className="page-break"></div>
+
+        {/* Parties - Page 2 */}
         <div className="mt-6">
           <h2 className="text-lg font-semibold mb-3">{t.partiesHeader}</h2>
 

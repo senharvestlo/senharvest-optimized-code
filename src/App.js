@@ -6,6 +6,8 @@ import { generateProductInquiry } from './utils/whatsapp';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
+import AdminDashboard from './components/pages/admin/AdminDashboard';
+import AdminNcndaPage from './components/pages/admin/AdminNcndaPage';
 import AdminDocs from './components/admin/AdminDocs';
 import AdminDocEditor from './components/admin/AdminDocEditor';
 import AdminNcndas from './components/admin/AdminNcndas';
@@ -175,6 +177,10 @@ function App() {
           <Route path="/admin/docs" element={<ProtectedRoute><AdminDocs/></ProtectedRoute>} />
           <Route path="/admin/docs/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
           <Route path="/admin/docs/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/admin/ncnda" element={<ProtectedRoute><AdminNcndaPage/></ProtectedRoute>} />
+          <Route path="/admin/ncnda/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/admin/ncnda/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/*" element={<MainShell/>} />
         </Routes>
         <WhatsAppFloat />

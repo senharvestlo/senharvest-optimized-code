@@ -10,7 +10,8 @@ if (!admin.apps || !admin.apps.length) {
 // Liste blanche des emails admin (modifiable)
 const ADMIN_WHITELIST = [
   'manager@senharvest.com',
-  'abdoulahat.lo@senharvest.com'
+  'abdoulahat.lo@senharvest.com',
+  'senharvestlo@gmail.com'
 ];
 
 /**
