@@ -25,44 +25,34 @@ export function exportHtmlToPdf(elementId, filename) {
   }).from(el).save();
 }
 
-export function printHtmlElement(elementId) {
+export async function previewPdf(elementId, filename) {
   const el = document.getElementById(elementId);
-  if (!el) return;
+  if (!el || !window.html2pdf) {
+    console.error('html2pdf not loaded or element not found');
+    return null;
+  }
 
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = '0';
-  document.body.appendChild(iframe);
+  // Évite les coupures de blocs
+  el.querySelectorAll('.pdf-avoid-break').forEach(n => {
+    n.style.breakInside = 'avoid';
+    n.style.pageBreakInside = 'avoid';
+  });
 
-  const doc = iframe.contentWindow.document;
-  doc.open();
-  doc.write(`
-    <html><head>
-      <title>Print</title>
-      <style>
-        @page { size: A4 portrait; margin: 10mm; }
-        @media print {
-          html, body { height: auto !important; }
-          .no-print { display: none !important; }
-        }
-        table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #e5e7eb; padding: 6px; }
-        .pdf-avoid-break { break-inside: avoid; page-break-inside: avoid; }
-      </style>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.10/dist/tailwind.min.css">
-    </head><body>${el.outerHTML}</body></html>
-  `);
-  doc.close();
-
-  iframe.onload = () => {
-    setTimeout(() => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      document.body.removeChild(iframe);
-    }, 100);
+  const opt = {
+    margin: [10, 10, 12, 10],
+    filename: filename || 'document.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
   };
+
+  // Génère le PDF et retourne le blob
+  const pdf = await window.html2pdf().set(opt).from(el).toPdf().get('pdf');
+  const blob = pdf.output('blob');
+  
+  // Crée une URL pour le blob
+  const url = URL.createObjectURL(blob);
+  
+  return { url, blob, filename };
 }
