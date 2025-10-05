@@ -1,0 +1,10 @@
+// Règles Firestore temporaires pour test - PERMET TOUT
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // TEMPORAIRE: Permet tout pour debug
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

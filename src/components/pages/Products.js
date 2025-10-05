@@ -1,16 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
-import ProductSpecsModal from '../products/ProductSpecsModal';
+// import ProductSpecsModal from '../products/ProductSpecsModal'; // Component doesn't exist
 
 /**
  * Products Page Component
  * Displays product catalog with filtering and inquiry options
  */
 function Products({ t, lang, onOpenForm }) {
-  const [specModalOpen, setSpecModalOpen] = useState(false);
-  const [specProductKey, setSpecProductKey] = useState(null);
+  // const [specModalOpen, setSpecModalOpen] = useState(false);
+  // const [specProductKey, setSpecProductKey] = useState(null);
 
   const products = useMemo(() =>
     BASE_PRODUCTS.map((p) => ({
@@ -89,7 +89,7 @@ function Products({ t, lang, onOpenForm }) {
                     variant="secondary"
                     size="sm"
                     className="w-full"
-                    onClick={() => { setSpecProductKey(product.key); setSpecModalOpen(true); }}
+                    onClick={() => alert(lang === 'fr' ? 'Spécifications temporairement indisponibles' : 'Specifications temporarily unavailable')}
                   >
                     {lang === 'fr' ? 'Voir spécifications' : 'View specifications'}
                   </Button>
@@ -100,13 +100,7 @@ function Products({ t, lang, onOpenForm }) {
         </div>
       </Container>
 
-      {/* Product Specs Modal */}
-      <ProductSpecsModal
-        productKey={specProductKey}
-        open={specModalOpen}
-        onClose={()=>setSpecModalOpen(false)}
-        lang={lang}
-      />
+      {/* Product Specs Modal - Component removed */}
     </div>
   );
 }

@@ -19,6 +19,7 @@ function Header({ t, lang, setLang, page, setPage }) {
   ];
 
   const handlePageChange = (pageKey) => {
+    console.log('🧭 Navigation clicked:', pageKey);
     setPage(pageKey);
     setIsMobileMenuOpen(false);
   };

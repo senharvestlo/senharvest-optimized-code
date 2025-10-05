@@ -1,4 +1,4 @@
-import { collection, addDoc, doc, setDoc, getDoc, getDocs, query, orderBy, serverTimestamp, updateDoc, deleteDoc, where, limit } from 'firebase/firestore';
+import { collection, addDoc, doc, setDoc, getDoc, getDocs, query, orderBy, serverTimestamp, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../config/firebase';
 
@@ -68,9 +68,42 @@ export async function saveContactMessage(data) {
   if (!db) return null;
   const payload = {
     ...data,
-    status: 'received',
+    status: 'new',
     createdAt: serverTimestamp(),
   };
   const refCreated = await addDoc(collection(db, COL_CONTACT), payload);
   return refCreated.id;
+}
+
+export async function listContactMessages(filterStatus = null) {
+  if (!db) return { items: [] };
+  let qref;
+  if (filterStatus) {
+    qref = query(collection(db, COL_CONTACT), where('status', '==', filterStatus), orderBy('createdAt', 'desc'));
+  } else {
+    qref = query(collection(db, COL_CONTACT), orderBy('createdAt', 'desc'));
+  }
+  const snap = await getDocs(qref);
+  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return { items };
+}
+
+export async function getContactMessage(id) {
+  if (!db) return null;
+  const refDoc = doc(db, COL_CONTACT, id);
+  const snap = await getDoc(refDoc);
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+export async function updateContactMessageStatus(id, status) {
+  if (!db) return;
+  await updateDoc(doc(db, COL_CONTACT, id), { 
+    status, 
+    updatedAt: serverTimestamp() 
+  });
+}
+
+export async function deleteContactMessage(id) {
+  if (!db) return;
+  await deleteDoc(doc(db, COL_CONTACT, id));
 }

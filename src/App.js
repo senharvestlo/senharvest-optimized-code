@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import useLang from './hooks/useLang';
 import { updateSEO } from './utils/seo';
 import { generateProductInquiry } from './utils/whatsapp';
@@ -7,17 +7,19 @@ import { trackPageView, trackContactForm, trackAdminAccess } from './config/anal
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, Admin, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
 import AdminDashboard from './components/pages/admin/AdminDashboard';
-import AdminNcndaPage from './components/pages/admin/AdminNcndaPage';
 import LogoutPage from './components/pages/admin/LogoutPage';
-import AdminNcndas from './components/admin/AdminNcndas';
-import AdminDocEditor from './components/admin/AdminDocEditor';
+import ContactRequests from './components/pages/admin/ContactRequests';
 import DocsList from './pages/admin/DocsList';
 import EditQuotation from './pages/admin/EditQuotation';
 import EditProforma from './pages/admin/EditProforma';
+import NCNDAEditor from './pages/admin/ncnda/NCNDAEditor';
+import NCNDAList from './pages/admin/ncnda/NCNDAList';
+import PSAEditor from './pages/admin/psa/PSAEditor';
+import PSAList from './pages/admin/psa/PSAList';
 import SpecsList from './pages/admin/specs/SpecsList';
 import EditSpec from './pages/admin/specs/EditSpec';
-import ProtectedRoute from './components/auth/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
+import AuthDebug from './components/debug/AuthDebug';
 import './App.css';
 
 /**
@@ -28,18 +30,26 @@ function MainShell() {
   const { lang, setLang, t } = useLang();
   const [page, setPage] = useState("home");
 
+  // Log to console for debugging
+  console.log('🌐 SenHarvest Website loaded successfully!');
+  console.log('📄 Current page:', page);
+  console.log('🌍 Current language:', lang);
+
   // Update SEO when language or page changes
   useEffect(() => {
     updateSEO(lang);
+    console.log('🔍 SEO updated for language:', lang);
   }, [lang]);
 
   // Track page views when page changes
   useEffect(() => {
     trackPageView(`/${page}`);
+    console.log('📊 Page view tracked:', page);
   }, [page]);
 
   // Handle product inquiry form opening
   const handleProductInquiry = (productName) => {
+    console.log('📧 Product inquiry requested for:', productName);
     setPage('contact');
     // Pre-fill the subject field with the product name
     setTimeout(() => {
@@ -138,11 +148,6 @@ function MainShell() {
           />
         )}
         
-        {page === 'admin-ncnda' && (
-          <ProtectedRoute>
-            <AdminNcndas />
-          </ProtectedRoute>
-        )}
         
         {page === 'privacy' && (
           <PrivacyPolicy 
@@ -168,11 +173,7 @@ function MainShell() {
   );
 }
 
-function EditWrapper(){
-  const { id } = useParams();
-  const nav = useNavigate();
-  return <AdminDocEditor id={id || null} navigate={nav} />;
-}
+// EditWrapper component removed - AdminDocEditor doesn't exist
 
 function App() {
   return (
@@ -180,25 +181,35 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Nouveau système Proforma/Devis avec collections séparées */}
-          <Route path="/admin/docs" element={<ProtectedRoute><DocsList/></ProtectedRoute>} />
-          <Route path="/admin/quotation/:id" element={<ProtectedRoute><EditQuotation/></ProtectedRoute>} />
-          <Route path="/admin/proforma/:id" element={<ProtectedRoute><EditProforma/></ProtectedRoute>} />
+          <Route path="/admin/docs" element={<DocsList/>} />
+          <Route path="/admin/quotation/:id" element={<EditQuotation/>} />
+          <Route path="/admin/proforma/:id" element={<EditProforma/>} />
           
           {/* NCNDA system */}
-          <Route path="/admin/ncnda" element={<ProtectedRoute><AdminNcndaPage/></ProtectedRoute>} />
+          <Route path="/admin/ncnda" element={<NCNDAList/>} />
+          <Route path="/admin/ncnda/new" element={<NCNDAEditor/>} />
+          <Route path="/admin/ncnda/:id" element={<NCNDAEditor/>} />
+          
+          {/* PSA (Profit-Sharing Agreements) system */}
+          <Route path="/admin/psa" element={<PSAList/>} />
+          <Route path="/admin/psa/new" element={<PSAEditor/>} />
+          <Route path="/admin/psa/:id" element={<PSAEditor/>} />
           
           {/* Product Specifications */}
-          <Route path="/admin/specs" element={<ProtectedRoute><SpecsList/></ProtectedRoute>} />
-          <Route path="/admin/specs/:id" element={<ProtectedRoute><EditSpec/></ProtectedRoute>} />
-          <Route path="/admin/ncnda/new" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
-          <Route path="/admin/ncnda/edit/:id" element={<ProtectedRoute><EditWrapper/></ProtectedRoute>} />
+          <Route path="/admin/specs" element={<SpecsList/>} />
+          <Route path="/admin/specs/:id" element={<EditSpec/>} />
+          
+          {/* Contact Requests */}
+          <Route path="/admin/contact-requests" element={<ContactRequests/>} />
           
           {/* Dashboard */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/logout" element={<LogoutPage />} />
           <Route path="/*" element={<MainShell/>} />
         </Routes>
         <WhatsAppFloat />
+        <AuthDebug />
       </BrowserRouter>
     </AuthProvider>
   );

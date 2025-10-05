@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { auth } from '../../../config/firebase';
 import { useNavigate } from 'react-router-dom';
-import GrantAdminButton from '../../admin/GrantAdminButton';
+// import GrantAdminButton from '../../admin/GrantAdminButton'; // Component doesn't exist
 
 export default function AdminDashboard() {
   const { user, isAdmin, loading, logout } = useAuth();
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
         </div>
         <div className="text-xs text-gray-600">{status}</div>
         <div className="mt-4">
-          <GrantAdminButton />
+          {/* GrantAdminButton component removed */}
         </div>
       </div>
     );
@@ -50,7 +50,7 @@ export default function AdminDashboard() {
           <p className="text-xs text-gray-600 mb-3">
             Utilise ce bouton pour te donner le rôle admin, puis remets DEV_MODE à false dans le code.
           </p>
-          <GrantAdminButton />
+          {/* GrantAdminButton component removed */}
         </div>
       )}
       
@@ -59,6 +59,12 @@ export default function AdminDashboard() {
         <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => navigate('/admin/ncnda')}>
           <h3 className="text-lg font-semibold mb-2">📄 Documents NCNDA</h3>
           <p className="text-sm text-gray-600">Créer, éditer et gérer les documents de confidentialité (NCNDA)</p>
+        </div>
+
+        {/* PSA Documents */}
+        <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => navigate('/admin/psa')}>
+          <h3 className="text-lg font-semibold mb-2">🤝 Contrats de Partenariat</h3>
+          <p className="text-sm text-gray-600">Créer, éditer et gérer les contrats de partage des bénéfices (PSA)</p>
         </div>
 
         {/* Proforma & Devis */}
@@ -74,7 +80,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Demandes Contact */}
-        <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => alert('Section en développement')}>
+        <div className="border rounded-lg p-6 hover:shadow-lg transition cursor-pointer bg-white" onClick={() => navigate('/admin/contact-requests')}>
           <h3 className="text-lg font-semibold mb-2">📧 Demandes Contact</h3>
           <p className="text-sm text-gray-600">Voir et gérer les demandes de contact clients</p>
         </div>

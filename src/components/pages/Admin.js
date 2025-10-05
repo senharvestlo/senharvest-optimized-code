@@ -4,10 +4,7 @@ import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
-import AdminLogin from '../admin/AdminLogin';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
-import AdminNcndas from '../admin/AdminNcndas';
-import GrantAdminButton from '../admin/GrantAdminButton';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
@@ -244,7 +241,10 @@ const Admin = ({ onAccess }) => {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AdminLogin onLogin={() => setIsAuthenticated(true)} />
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Admin Access Required</h2>
+            <p className="text-gray-600">Please contact the administrator for access.</p>
+          </div>
         </div>
       </div>
     );
@@ -805,10 +805,10 @@ const Admin = ({ onAccess }) => {
           )}
           {activeTab === 'ncnda' && (
             <div className="p-6">
-              <div className="mb-6">
-                <GrantAdminButton />
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">NCNDA Management</h3>
+                <p className="text-gray-600">NCNDA functionality is being updated.</p>
               </div>
-              <AdminNcndas />
             </div>
           )}
         </div>

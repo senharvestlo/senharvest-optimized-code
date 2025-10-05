@@ -5,6 +5,8 @@
   "private": true,
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "canvg": "^4.0.3",
+    "dompurify": "^3.2.7",
     "firebase": "^12.3.0",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.12.1",

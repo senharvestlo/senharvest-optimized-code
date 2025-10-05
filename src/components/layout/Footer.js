@@ -83,6 +83,7 @@ function Footer({ t, lang, setPage }) {
             </div>
           </div>
         </div>
+        
       </Container>
       {openLogin && <AdminLoginModal onClose={() => setOpenLogin(false)} />}
     </footer>

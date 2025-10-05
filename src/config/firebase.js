@@ -1,30 +1,29 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+// v9 modular
+import { initializeApp } from 'firebase/app';
+import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
 
-// Map both REACT_APP_FB_* and REACT_APP_FIREBASE_* env names
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FB_API_KEY || process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FB_AUTH_DOMAIN || process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FB_PROJECT_ID || process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FB_STORAGE_BUCKET || process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FB_SENDER_ID || process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FB_APP_ID || process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FB_MEASUREMENT_ID || process.env.REACT_APP_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.REACT_APP_FB_API_KEY,
+  authDomain: process.env.REACT_APP_FB_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FB_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FB_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FB_SENDER_ID,
+  appId: process.env.REACT_APP_FB_APP_ID,
 };
 
-const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'appId'];
-export const FIREBASE_READY = requiredKeys.every((k) => Boolean(firebaseConfig[k]));
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
+export const storage = getStorage(app);
+export const functions = getFunctions(app, process.env.REACT_APP_FB_REGION || 'us-central1');
+export const googleProvider = new GoogleAuthProvider();
 
-export function getFirebaseApp() {
-  if (!FIREBASE_READY) return null;
-  return getApps().length ? getApp() : initializeApp(firebaseConfig);
-}
+// Firebase ready flag
+export const FIREBASE_READY = true;
 
-export const app = getFirebaseApp();
-export const auth = app ? getAuth(app) : null;
-export const db = app ? getFirestore(app) : null;
-export const storage = app ? getStorage(app) : null;
-
-export default app;
+// helpers callable
+export const callGrantAdmin = httpsCallable(functions, 'grantAdmin');
+export const callSendContactEmail = httpsCallable(functions, 'sendContactEmail');

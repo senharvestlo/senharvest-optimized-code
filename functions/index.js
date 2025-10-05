@@ -1,100 +1,81 @@
-const admin = require('firebase-admin');
-const functions = require('firebase-functions');
-const cors = require('cors')({ origin: true });
-const nodemailer = require('nodemailer');
+import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import * as admin from 'firebase-admin';
+import * as nodemailer from 'nodemailer';
+import * as functions from 'firebase-functions';
 
-if (!admin.apps || !admin.apps.length) {
-  admin.initializeApp();
-}
+admin.initializeApp();
+const auth = admin.auth();
+const db = admin.firestore();
 
-// Liste blanche des emails admin (modifiable)
-const ADMIN_WHITELIST = [
-  'manager@senharvest.com',
-  'abdoulahat.lo@senharvest.com',
-  'senharvestlo@gmail.com'
-];
+// ---- SMTP Hostinger ----
+// Config dans Firebase Console > Functions > Variables d'env (ou .env.functions.local pour émulateur)
+// EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS, EMAIL_TO (manager@senharvest.com)
 
-/**
- * Callable: setAdminClaim
- * - Appelé par un super-admin (ou restreindre à la whitelist ci-dessous)
- */
-exports.setAdminClaim = functions.https.onCall(async (data, context) => {
-  // Restreindre l'appelant (ici: doit être déjà admin OU faire un contrôle fort)
-  const callerEmail = context.auth?.token?.email || '';
-  if (!callerEmail || !ADMIN_WHITELIST.includes(callerEmail)) {
-    throw new functions.https.HttpsError('permission-denied', 'Not authorized');
-  }
-
-  const { email, makeAdmin } = data || {};
-  if (!email) throw new functions.https.HttpsError('invalid-argument', 'email required');
-
-  // Trouver l'utilisateur par email
-  const user = await admin.auth().getUserByEmail(email);
-  await admin.auth().setCustomUserClaims(user.uid, { admin: !!makeAdmin });
-
-  return { ok: true, email, admin: !!makeAdmin };
+const transporter = nodemailer.createTransporter({
+  host: process.env.EMAIL_HOST,     // ex: smtp.hostinger.com
+  port: Number(process.env.EMAIL_PORT || 465),
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
-/**
- * HTTPS: submitContact
- * - Enregistre contact dans Firestore + envoie email (Hostinger SMTP)
- * - Côté Netlify, appelez cet endpoint via fetch depuis le formulaire
- */
-exports.submitContact = functions.https.onRequest(async (req, res) => {
-  cors(req, res, async () => {
-    if (req.method !== 'POST') {
-      return res.status(405).send('Method Not Allowed');
-    }
-    try {
-      const { name, email, phone, subject, quantity, destination, incoterm, payment, message, lang } = req.body || {};
+// === 1) Donner un rôle admin à un email ===
+export const grantAdmin = onCall({ cors: true, region: 'us-central1' }, async (req) => {
+  const requester = req.auth;
+  if (!requester) throw new HttpsError('unauthenticated', 'Auth required.');
+  // Ici on peut restreindre: seul un super-admin (préconfiguré) peut donner le rôle
+  // Pour faire simple: autoriser si le demandeur a déjà admin==true
+  if (!requester.token?.admin) throw new HttpsError('permission-denied', 'Only admin can grant admin.');
+  const { email } = req.data || {};
+  if (!email) throw new HttpsError('invalid-argument', 'email required');
 
-      // Sauvegarde Firestore
-      const db = admin.firestore();
-      await db.collection('contacts').add({
-        name, email, phone, subject, quantity, destination, incoterm, payment, message,
-        lang: lang || 'fr',
-        createdAt: admin.firestore.FieldValue.serverTimestamp()
-      });
+  const user = await auth.getUserByEmail(email).catch(() => null);
+  if (!user) throw new HttpsError('not-found', 'user not found');
 
-      // Envoi email (Hostinger SMTP)
-      const transporter = nodemailer.createTransporter({
-        host: 'smtp.hostinger.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EMAIL_USER, // inquiry@senharvest.com par ex.
-          pass: process.env.EMAIL_PASS
-        }
-      });
+  await auth.setCustomUserClaims(user.uid, { admin: true });
+  return { ok: true };
+});
 
-      const to = 'manager@senharvest.com';
-      await transporter.sendMail({
-        from: `"SenHarvest Website" <${process.env.EMAIL_USER}>`,
-        to,
-        subject: `[SenHarvest] ${subject || 'Contact form'}`,
-        text: `
-Nouvelle demande de contact
+// === 2) Envoi email Contact + sauvegarde (déjà enregistré côté client aussi, redondance ok) ===
+export const sendContactEmail = onCall({ cors: true, region: 'us-central1' }, async (req) => {
+  const data = req.data || {};
+  const {
+    name = '', email = '', phone = '',
+    subject = '', quantity = '', destination = '',
+    incoterm = '', payment = '', message = ''
+  } = data;
 
-Nom: ${name}
-Email: ${email}
-Téléphone: ${phone}
-Sujet: ${subject}
-Quantité: ${quantity}
-Destination: ${destination}
-Incoterm: ${incoterm}
-Paiement: ${payment}
-
-Message:
-${message}
-
--- Envoyé via site web
-        `
-      });
-
-      return res.status(200).json({ ok: true });
-    } catch (e) {
-      console.error('submitContact error', e);
-      return res.status(500).json({ ok: false, error: e.message });
-    }
+  // Sauvegarde sécurité côté serveur (optionnel si déjà côté client)
+  await db.collection('contacts').add({
+    ...data,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
   });
+
+  const to = process.env.EMAIL_TO || 'manager@senharvest.com';
+  const html = `
+    <h2>Nouvelle demande de contact – SenHarvest.com</h2>
+    <p><b>Nom:</b> ${name}</p>
+    <p><b>Email:</b> ${email}</p>
+    <p><b>Téléphone:</b> ${phone}</p>
+    <p><b>Sujet:</b> ${subject}</p>
+    <p><b>Quantité:</b> ${quantity}</p>
+    <p><b>Destination:</b> ${destination}</p>
+    <p><b>Incoterm:</b> ${incoterm}</p>
+    <p><b>Paiement:</b> ${payment}</p>
+    <p><b>Message:</b><br/>${(message||'').replace(/\n/g,'<br/>')}</p>
+    <hr/>
+    <p>Mail auto – Site SenHarvest</p>
+  `;
+
+  await transporter.sendMail({
+    from: `"SenHarvest Site" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `[SenHarvest] ${subject || 'Contact'}`,
+    html,
+    replyTo: email || undefined,
+  });
+
+  return { ok: true };
 });

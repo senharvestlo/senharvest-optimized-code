@@ -1,20 +1,10 @@
 import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container, SectionTitle, Input, Select, Textarea, Button } from '../ui';
+import { saveContact } from '../../services/contacts';
 
-// Cloud Function endpoint
+// Cloud Function endpoint (kept for compatibility)
 const CF_ENDPOINT = process.env.REACT_APP_CF_SENDCONTACT_URL || 'https://us-central1-xidma-harvest.cloudfunctions.net/sendContact';
-
-async function postContactToCF(form) {
-  if (!CF_ENDPOINT) return null;
-  const r = await fetch(CF_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form),
-  });
-  if (!r.ok) throw new Error('Cloud Function error');
-  return r.json();
-}
 // Form utilities moved inline
 const getInitialFormState = () => ({
   name: '',
@@ -71,7 +61,9 @@ function Contact({ t, lang, onSubmit }) {
     setErrors({});
     
     try {
-      await postContactToCF(form);
+      // Save to Firestore and send email via new service
+      await saveContact(form);
+      
       alert(lang === 'fr'
         ? 'Votre demande a été envoyée ! Nous vous répondrons rapidement.'
         : 'Your request has been sent! We will get back to you shortly.'

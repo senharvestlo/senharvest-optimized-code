@@ -108,3 +108,9 @@ firestore-debug.log*
 COMPLETE_PROJECT_CODE*.md
 # Local Netlify folder
 .netlify
+
+# Large installer files
+*.pkg
+*.dmg
+*.exe
+*.msi

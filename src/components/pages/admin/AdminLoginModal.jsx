@@ -45,7 +45,12 @@ export default function AdminLoginModal({ onClose }) {
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-bold">Admin Login</h3>
-          <button onClick={onClose} className="text-2xl leading-none">×</button>
+          <button 
+            onClick={onClose} 
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold transition-colors duration-200"
+          >
+            ×
+          </button>
         </div>
 
         {!FIREBASE_READY && (
@@ -76,7 +81,7 @@ export default function AdminLoginModal({ onClose }) {
           <button
             type="submit"
             disabled={busy}
-            className="w-full bg-green-700 hover:bg-green-800 text-white font-semibold rounded px-3 py-2"
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold rounded px-3 py-2 transition-colors duration-200 disabled:opacity-50"
           >
             {busy ? 'Connexion…' : 'Se connecter'}
           </button>
@@ -87,10 +92,19 @@ export default function AdminLoginModal({ onClose }) {
         <button
           onClick={loginGoogle}
           disabled={busy}
-          className="w-full border rounded px-3 py-2 hover:bg-gray-50"
+          className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold rounded px-3 py-2 transition-colors duration-200 disabled:opacity-50"
         >
           Continuer avec Google
         </button>
+
+        <div className="mt-4 text-center">
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 text-sm underline"
+          >
+            Annuler
+          </button>
+        </div>
       </div>
     </div>
   );

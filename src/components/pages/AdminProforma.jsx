@@ -1,20 +1,17 @@
 import React from 'react';
-import ProformaHtmlEditor from '../pdf/ProformaHtmlEditor';
 import useLang from '../../hooks/useLang';
-import { DIC } from '../../config/translations';
 
 export default function AdminProforma() {
   const { lang } = useLang();
-  const t = DIC[lang];
 
-  const handleSave = (payload) => {
-    // TODO: push to Firestore later
-    // eslint-disable-next-line no-console
-    console.log('SAVE', payload);
-    alert('Proforma sauvegardée (voir console).');
-  };
-
-  return <ProformaHtmlEditor onBack={()=>{}} />;
+  return (
+    <div className="p-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Proforma Editor</h3>
+        <p className="text-gray-600">Proforma editor is being updated.</p>
+      </div>
+    </div>
+  );
 }
 
 
