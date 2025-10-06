@@ -1,10 +1,7 @@
 // src/config/firebase.js
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import {
-  getFirestore,
-  initializeFirestore,            // <— important
-} from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
 import { getStorage } from 'firebase/storage';
 import { httpsCallable } from 'firebase/functions';
@@ -24,22 +21,34 @@ if (!firebaseConfig.projectId) {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-let _db, _auth, _storage, _functions;
-
-// 👉 Force l'enregistrement Firestore (évite "service not available")
-try {
-  initializeFirestore(app, {
-    ignoreUndefinedProperties: true,
-  });
-} catch (_) {
-  // initializeFirestore ne peut être appelé qu'une fois : ignore si déjà fait
-}
+// Instances paresseuses avec gestion d'erreur robuste
+let _db = null;
+let _auth = null;
+let _storage = null;
+let _functions = null;
 
 export function getDb() {
-  if (!_db) _db = getFirestore(app);
+  if (!_db) {
+    try {
+      _db = getFirestore(app);
+    } catch (error) {
+      console.error('❌ Erreur getFirestore:', error);
+      // Retry une fois après un délai
+      setTimeout(() => {
+        try {
+          _db = getFirestore(app);
+        } catch (retryError) {
+          console.error('❌ Retry getFirestore failed:', retryError);
+        }
+      }, 1000);
+    }
+  }
   return _db;
 }
-export function ensureDb() { return getDb(); }
+
+export function ensureDb() { 
+  return getDb(); 
+}
 
 export function getAuthSafe() {
   if (!_auth) _auth = getAuth(app);
@@ -58,20 +67,62 @@ export function getFunctionsLazy(region = (process.env.REACT_APP_FIREBASE_REGION
 
 export const googleProvider = new GoogleAuthProvider();
 
-// Exports "compat" attendus par tes anciens imports
-export const db = (() => { try { return getDb(); } catch { return null; } })();
-export const auth = (() => { try { return getAuthSafe(); } catch { return null; } })();
-export const storage = (() => { try { return getStorageLazy(); } catch { return null; } })();
-export const functions = (() => { try { return getFunctionsLazy(); } catch { return null; } })();
+// Exports "compat" avec gestion d'erreur
+export const db = (() => { 
+  try { 
+    return getDb(); 
+  } catch (error) {
+    console.warn('⚠️ db export failed, returning null:', error.message);
+    return null; 
+  } 
+})();
+
+export const auth = (() => { 
+  try { 
+    return getAuthSafe(); 
+  } catch (error) {
+    console.warn('⚠️ auth export failed, returning null:', error.message);
+    return null; 
+  } 
+})();
+
+export const storage = (() => { 
+  try { 
+    return getStorageLazy(); 
+  } catch (error) {
+    console.warn('⚠️ storage export failed, returning null:', error.message);
+    return null; 
+  } 
+})();
+
+export const functions = (() => { 
+  try { 
+    return getFunctionsLazy(); 
+  } catch (error) {
+    console.warn('⚠️ functions export failed, returning null:', error.message);
+    return null; 
+  } 
+})();
 
 export const FIREBASE_READY = !!app;
 
-// Callables si CF dispos
+// Callables avec gestion d'erreur
 export const callGrantAdmin = (() => {
-  try { return httpsCallable(getFunctionsLazy(), 'grantAdmin'); } catch { return null; }
+  try { 
+    return httpsCallable(getFunctionsLazy(), 'grantAdmin'); 
+  } catch (error) {
+    console.warn('⚠️ callGrantAdmin failed:', error.message);
+    return null; 
+  }
 })();
+
 export const callSendContactEmail = (() => {
-  try { return httpsCallable(getFunctionsLazy(), 'sendContactEmail'); } catch { return null; }
+  try { 
+    return httpsCallable(getFunctionsLazy(), 'sendContactEmail'); 
+  } catch (error) {
+    console.warn('⚠️ callSendContactEmail failed:', error.message);
+    return null; 
+  }
 })();
 
 export { app };

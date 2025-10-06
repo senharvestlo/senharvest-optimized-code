@@ -20,7 +20,11 @@ export function defaultSpec() {
 }
 
 export async function listSpecs({ productKey } = {}) {
-  const db = await getDb();
+  const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour listSpecs');
+    return []; // Retourne tableau vide au lieu de throw
+  }
   const ref = collection(db, COL);
   let q;
   
@@ -45,13 +49,21 @@ export async function listSpecs({ productKey } = {}) {
 }
 
 export async function getSpec(id) {
-  const db = await getDb();
+  const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour getSpec');
+    throw new Error('Service Firestore non disponible');
+  }
   const s = await getDoc(doc(db, COL, id));
   return s.exists() ? ({ id: s.id, ...s.data() }) : null;
 }
 
 export async function createSpec(payload) {
-  const db = await getDb();
+  const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour createSpec');
+    throw new Error('Service Firestore non disponible');
+  }
   const ref = await addDoc(collection(db, COL), {
     ...defaultSpec(),
     ...payload,
@@ -62,7 +74,11 @@ export async function createSpec(payload) {
 }
 
 export async function updateSpec(id, payload) {
-  const db = await getDb();
+  const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour updateSpec');
+    throw new Error('Service Firestore non disponible');
+  }
   await updateDoc(doc(db, COL, id), {
     ...payload,
     updatedAt: Timestamp.now(),
@@ -70,6 +86,10 @@ export async function updateSpec(id, payload) {
 }
 
 export async function deleteSpec(id) {
-  const db = await getDb();
+  const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour deleteSpec');
+    throw new Error('Service Firestore non disponible');
+  }
   await deleteDoc(doc(db, COL, id));
 }

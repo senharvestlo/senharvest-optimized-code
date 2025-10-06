@@ -13,21 +13,32 @@ export default function ContactRequests() {
   const loadRequests = useCallback(async () => {
     setBusy(true); setErr('');
     try {
-      const db = await getDb();
+      const db = getDb();
+      if (!db) {
+        throw new Error('Service Firestore non disponible');
+      }
       const q = query(collection(db, 'contact_requests'), orderBy('createdAt', 'desc'));
       const snap = await getDocs(q);
       setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (e) {
-      console.error(e); setErr(e.message || 'Load error');
+      console.error(e); 
+      setErr(e.message || 'Load error');
     } finally { setBusy(false); }
   }, []);
 
-  useEffect(() => { loadRequests(); }, [loadRequests]);
+  useEffect(() => { 
+    // Délai pour laisser Firebase s'initialiser
+    const timer = setTimeout(loadRequests, 1000);
+    return () => clearTimeout(timer);
+  }, [loadRequests]);
 
   async function handleDelete(id) {
     if (!window.confirm('Supprimer cette demande ?')) return;
     try {
-      const db = await getDb();
+      const db = getDb();
+      if (!db) {
+        throw new Error('Service Firestore non disponible');
+      }
       await deleteDoc(doc(db, 'contact_requests', id));
       setItems(items.filter(x => x.id !== id));
     } catch (e) { console.error(e); alert('Suppression impossible'); }

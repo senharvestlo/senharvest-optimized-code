@@ -7,6 +7,10 @@ import { getDb } from '../config/firebase';
 // CREATE
 export async function createDoc(colName, data) {
   const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour createDoc');
+    throw new Error('Service Firestore non disponible');
+  }
   const ref = await addDoc(collection(db, colName), {
     ...data,
     createdAt: serverTimestamp(),
@@ -18,6 +22,10 @@ export async function createDoc(colName, data) {
 // READ one
 export async function getDocById(colName, id) {
   const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour getDocById');
+    throw new Error('Service Firestore non disponible');
+  }
   const snap = await getDoc(doc(db, colName, id));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() };
@@ -26,6 +34,10 @@ export async function getDocById(colName, id) {
 // LIST
 export async function listDocs(colName) {
   const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour listDocs');
+    return []; // Retourne tableau vide au lieu de throw
+  }
   const q = query(collection(db, colName), orderBy('updatedAt', 'desc'));
   const s = await getDocs(q);
   return s.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -34,6 +46,10 @@ export async function listDocs(colName) {
 // UPDATE
 export async function updateDocById(colName, id, data) {
   const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour updateDocById');
+    throw new Error('Service Firestore non disponible');
+  }
   await updateDoc(doc(db, colName, id), {
     ...data,
     updatedAt: serverTimestamp()
@@ -44,6 +60,10 @@ export async function updateDocById(colName, id, data) {
 // DELETE
 export async function deleteDocById(colName, id) {
   const db = getDb();
+  if (!db) {
+    console.error('❌ Firestore non disponible pour deleteDocById');
+    throw new Error('Service Firestore non disponible');
+  }
   await deleteDoc(doc(db, colName, id));
   return { id };
 }

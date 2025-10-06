@@ -198,6 +198,7 @@ const Admin = ({ onAccess }) => {
       // Optionnel: upload + métadonnées (l'utilisateur peut préférer download local uniquement)
       const { blob, filename } = await generateTradePDFBlob(data);
       const path = `pdfs/${filename}`;
+      const storage = getStorageLazy();
       const fileRef = storageRef(storage, path);
       await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
       const url = await getDownloadURL(fileRef);
