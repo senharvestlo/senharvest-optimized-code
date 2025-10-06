@@ -38,6 +38,23 @@ export const grantAdmin = onCall({ cors: true, region: 'us-central1' }, async (r
   return { ok: true };
 });
 
+// === 1.1) Fonction pour s'auto-donner le rôle admin (temporaire) ===
+export const setAdminClaim = onCall({ cors: true, region: 'us-central1' }, async (req) => {
+  const requester = req.auth;
+  if (!requester) throw new HttpsError('unauthenticated', 'Auth required.');
+  
+  // Sécurité: restreindre à l'email manager@senharvest.com
+  if (requester.token.email !== 'manager@senharvest.com') {
+    throw new HttpsError('permission-denied', 'Only manager@senharvest.com can use this function');
+  }
+  
+  const { uid } = req.data || {};
+  if (!uid) throw new HttpsError('invalid-argument', 'uid required');
+
+  await auth.setCustomUserClaims(uid, { admin: true });
+  return { ok: true };
+});
+
 // === 2) Envoi email Contact + sauvegarde (déjà enregistré côté client aussi, redondance ok) ===
 export const sendContactEmail = onCall({ cors: true, region: 'us-central1' }, async (req) => {
   const data = req.data || {};

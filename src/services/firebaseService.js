@@ -1,6 +1,6 @@
 import { collection, addDoc, doc, setDoc, getDoc, getDocs, query, orderBy, serverTimestamp, updateDoc, deleteDoc, where } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { getDb, getStorageLazy } from '../config/firebase';
 
 // --- Collections ---
 const COL_TRADE = 'trade_docs';
@@ -8,7 +8,7 @@ const COL_CONTACT = 'contact_msgs';
 
 // --- Trade docs CRUD ---
 export async function saveTradeDoc(id, data) {
-  if (!db) return null;
+  const db = await getDb();
   const payload = {
     ...data,
     updatedAt: serverTimestamp(),
@@ -24,86 +24,80 @@ export async function saveTradeDoc(id, data) {
   }
 }
 
-export async function listTradeDocs(arg) {
-  if (!db) return { items: [] };
-  // Backward compat: allow listTradeDocs('quotation')
-  const type = typeof arg === 'string' ? arg : (arg && arg.type) ? arg.type : null;
-
-  let qref;
-  if (type) {
-    qref = query(collection(db, COL_TRADE), where('type', '==', type), orderBy('updatedAt', 'desc'));
+export async function getTradeDoc(id) {
+  const db = await getDb();
+  const docRef = doc(db, COL_TRADE, id);
+  const docSnap = await getDoc(docRef);
+  
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() };
   } else {
-    qref = query(collection(db, COL_TRADE), orderBy('updatedAt', 'desc'));
+    return null;
   }
-  const snap = await getDocs(qref);
-  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  return { items };
 }
 
-export async function getTradeDoc(id) {
-  if (!db) return null;
-  const refDoc = doc(db, COL_TRADE, id);
-  const snap = await getDoc(refDoc);
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+export async function listTradeDocs(limitCount = 50) {
+  const db = await getDb();
+  const q = query(collection(db, COL_TRADE), orderBy('updatedAt', 'desc'), limit(limitCount));
+  const querySnapshot = await getDocs(q);
+  
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
 }
 
 export async function deleteTradeDoc(id) {
-  if (!db) return;
+  const db = await getDb();
   await deleteDoc(doc(db, COL_TRADE, id));
 }
 
-export async function uploadTradePdf(id, blob) {
-  if (!storage) return null;
-  const storageRef = ref(storage, `${COL_TRADE}/${id}.pdf`);
-  await uploadBytes(storageRef, blob, { contentType: 'application/pdf' });
-  const url = await getDownloadURL(storageRef);
-  if (db) {
-    await updateDoc(doc(db, COL_TRADE, id), { pdfUrl: url, pdfUpdatedAt: serverTimestamp() });
-  }
-  return url;
-}
-
-// --- Contact messages ---
+// --- Contact messages CRUD ---
 export async function saveContactMessage(data) {
-  if (!db) return null;
+  const db = await getDb();
   const payload = {
     ...data,
-    status: 'new',
     createdAt: serverTimestamp(),
   };
+  
   const refCreated = await addDoc(collection(db, COL_CONTACT), payload);
   return refCreated.id;
 }
 
-export async function listContactMessages(filterStatus = null) {
-  if (!db) return { items: [] };
-  let qref;
-  if (filterStatus) {
-    qref = query(collection(db, COL_CONTACT), where('status', '==', filterStatus), orderBy('createdAt', 'desc'));
-  } else {
-    qref = query(collection(db, COL_CONTACT), orderBy('createdAt', 'desc'));
-  }
-  const snap = await getDocs(qref);
-  const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  return { items };
+export async function listContactMessages(limitCount = 100) {
+  const db = await getDb();
+  const q = query(collection(db, COL_CONTACT), orderBy('createdAt', 'desc'), limit(limitCount));
+  const querySnapshot = await getDocs(q);
+  
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
 }
 
-export async function getContactMessage(id) {
-  if (!db) return null;
-  const refDoc = doc(db, COL_CONTACT, id);
-  const snap = await getDoc(refDoc);
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+// --- File upload utilities ---
+export async function uploadFile(file, path) {
+  const storage = await getStorageLazy();
+  const storageRef = ref(storage, path);
+  const snapshot = await uploadBytes(storageRef, file);
+  const downloadURL = await getDownloadURL(snapshot.ref);
+  return downloadURL;
 }
 
-export async function updateContactMessageStatus(id, status) {
-  if (!db) return;
-  await updateDoc(doc(db, COL_CONTACT, id), { 
-    status, 
-    updatedAt: serverTimestamp() 
-  });
-}
-
-export async function deleteContactMessage(id) {
-  if (!db) return;
-  await deleteDoc(doc(db, COL_CONTACT, id));
+// --- Search utilities ---
+export async function searchTradeDocs(searchTerm) {
+  const db = await getDb();
+  const searchLower = searchTerm.toLowerCase();
+  
+  // Search by number (reference)
+  const q1 = query(collection(db, COL_TRADE), where('number', '>=', searchLower), where('number', '<=', searchLower + '\uf8ff'));
+  const q2 = query(collection(db, COL_TRADE), where('buyer.name', '>=', searchLower), where('buyer.name', '<=', searchLower + '\uf8ff'));
+  
+  const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+  
+  const results = new Map();
+  snap1.docs.forEach(doc => results.set(doc.id, { id: doc.id, ...doc.data() }));
+  snap2.docs.forEach(doc => results.set(doc.id, { id: doc.id, ...doc.data() }));
+  
+  return Array.from(results.values());
 }

@@ -14,7 +14,9 @@ export default function AdminLoginModal({ onClose }) {
     e.preventDefault();
     setErr(''); setBusy(true);
     try {
-      if (!FIREBASE_READY || !auth) throw new Error('Firebase non configuré. Vérifiez vos variables REACT_APP_FB_*');
+      if (!FIREBASE_READY || !auth) {
+        throw new Error('Firebase non initialisé. Vérifiez la console pour plus de détails.');
+      }
       await signInWithEmailAndPassword(auth, email.trim(), pwd);
       if (typeof onClose === 'function') onClose();
       navigate('/admin');
@@ -28,7 +30,9 @@ export default function AdminLoginModal({ onClose }) {
   const loginGoogle = async () => {
     setErr(''); setBusy(true);
     try {
-      if (!FIREBASE_READY || !auth) throw new Error('Firebase non configuré. Vérifiez vos variables REACT_APP_FB_*');
+      if (!FIREBASE_READY || !auth) {
+        throw new Error('Firebase non initialisé. Vérifiez la console pour plus de détails.');
+      }
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       if (typeof onClose === 'function') onClose();
@@ -55,7 +59,7 @@ export default function AdminLoginModal({ onClose }) {
 
         {!FIREBASE_READY && (
           <div className="mb-3 text-red-600 text-sm">
-            Firebase n'est pas configuré. Ajoutez vos variables REACT_APP_FB_* dans .env / Netlify.
+            Firebase n'est pas configuré. Ajoutez vos variables REACT_APP_FIREBASE_* dans .env / Netlify.
           </div>
         )}
 

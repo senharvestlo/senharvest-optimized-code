@@ -1,6 +1,6 @@
 // src/pages/admin/ncnda/NCNDAEditor.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import html2pdf from 'html2pdf.js';
+import { downloadCleanPDF } from '../../../utils/html2pdfSafe';
 import { createNCNDA, getNCNDA, updateNCNDA } from '../../../services/ncnda';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -146,7 +146,7 @@ const inject = (s, map) =>
 
 export default function NCNDAEditor() {
   const { id } = useParams(); // 'new' ou docId Firestore
-  const isNew = id === 'new';
+  const isNew = !id || id === 'new'; // Si pas d'ID ou "new", c'est un nouveau document
   const nav = useNavigate();
   const location = useLocation();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -238,19 +238,9 @@ export default function NCNDAEditor() {
   };
 
   const onDownload = async () => {
-    // Evite les PDF vides/about:blank : attendre un cycle de rendu
-    await new Promise((r) => setTimeout(r, 0));
-    const node = docRef.current;
+    const node = document.getElementById('ncnda-document');
     const filename = `NCNDA-${form.ref || new Date().toISOString().slice(0,10)}.pdf`;
-    const opt = {
-      margin: 0.5,
-      filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
-    };
-    await html2pdf().set(opt).from(node).save();
+    await downloadCleanPDF(node, filename);
   };
 
   // Clauses dynamiques
@@ -382,17 +372,17 @@ export default function NCNDAEditor() {
            ref={docRef}
            className="max-w-5xl mx-auto bg-white shadow border rounded p-8 print:p-0 print:shadow-none">
         {/* Entête + logo ICC */}
-        <div className="flex items-start gap-4 border-b pb-4">
+        <div className="pdf-header flex items-start gap-4 border-b pb-4">
           <img
             src={'/icc%20logo.png'} /* nom exact fourni: 'icc logo.png' (avec espace) */
             alt="ICC - International Chamber of Commerce"
-            className="h-14"
+            className="h-12"
             onError={(e)=>{ e.currentTarget.style.display='none'; }}
           />
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">{T.title}</h1>
-            <p className="text-gray-600 text-sm">{T.subtitle}</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <h1 className="text-lg font-bold text-blue-800 leading-tight">{T.title}</h1>
+            <p className="text-gray-600 text-sm leading-relaxed">{T.subtitle}</p>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               {form.ref ? `Ref: ${form.ref}` : ''} {form.ref && ' · '} {fmtDate(form.dateIssued)}
             </p>
           </div>
@@ -407,7 +397,7 @@ export default function NCNDAEditor() {
         </ol>
 
         {/* Commission */}
-        <div className="bg-indigo-50 p-4 rounded border mt-6">
+        <div className="bg-indigo-50 p-4 rounded border mt-6 avoid-page-break">
           <h2 className="font-semibold text-indigo-800 mb-2">{T.commissionTitle}</h2>
           <p className="text-justify">
             {inject(T.commissionBody, { FEE: form.feePct })}
@@ -415,7 +405,7 @@ export default function NCNDAEditor() {
         </div>
 
         {/* Scope */}
-        <div className="bg-gray-50 p-4 rounded border mt-4">
+        <div className="bg-gray-50 p-4 rounded border mt-4 avoid-page-break">
           <h2 className="font-semibold mb-2">{T.scopeTitle}</h2>
           <p className="text-justify">
             {inject(T.scopeBody, { PRODUCTS: form.products, INCOTERMS: form.incoterms })}
@@ -423,7 +413,7 @@ export default function NCNDAEditor() {
         </div>
 
         {/* EDT */}
-        <div className="bg-gray-50 p-4 rounded border mt-4">
+        <div className="bg-gray-50 p-4 rounded border mt-4 avoid-page-break">
           <h2 className="font-semibold mb-2">{T.edtTitle}</h2>
           <p className="text-justify">{T.edtBody}</p>
         </div>

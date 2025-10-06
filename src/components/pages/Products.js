@@ -1,16 +1,17 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
-// import ProductSpecsModal from '../products/ProductSpecsModal'; // Component doesn't exist
+import ProductSpecsModal from '../products/ProductSpecsModal';
 
 /**
  * Products Page Component
  * Displays product catalog with filtering and inquiry options
  */
 function Products({ t, lang, onOpenForm }) {
-  // const [specModalOpen, setSpecModalOpen] = useState(false);
-  // const [specProductKey, setSpecProductKey] = useState(null);
+  const [specModalOpen, setSpecModalOpen] = useState(false);
+  const [specProductKey, setSpecProductKey] = useState(null);
+  const [specProductName, setSpecProductName] = useState('');
 
   const products = useMemo(() =>
     BASE_PRODUCTS.map((p) => ({
@@ -89,7 +90,12 @@ function Products({ t, lang, onOpenForm }) {
                     variant="secondary"
                     size="sm"
                     className="w-full"
-                    onClick={() => alert(lang === 'fr' ? 'Spécifications temporairement indisponibles' : 'Specifications temporarily unavailable')}
+                    onClick={() => {
+                      setSpecProductKey(product.key);
+                      setSpecProductName(product.name);
+                      setSpecModalOpen(true);
+                      trackButtonClick(`view_specs_${product.key}`);
+                    }}
                   >
                     {lang === 'fr' ? 'Voir spécifications' : 'View specifications'}
                   </Button>
@@ -100,7 +106,14 @@ function Products({ t, lang, onOpenForm }) {
         </div>
       </Container>
 
-      {/* Product Specs Modal - Component removed */}
+      {/* Product Specs Modal */}
+      <ProductSpecsModal
+        isOpen={specModalOpen}
+        onClose={() => setSpecModalOpen(false)}
+        productKey={specProductKey}
+        productName={specProductName}
+        lang={lang}
+      />
     </div>
   );
 }

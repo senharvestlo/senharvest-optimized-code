@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BASE_PRODUCTS } from '../../../config/products';
-import { defaultSpec, getSpec, saveSpec } from '../../../services/productSpecs';
+import { defaultSpec, getSpec, createSpec, updateSpec } from '../../../services/productSpecs';
 import { useNavigate, useParams } from 'react-router-dom';
 
 export default function EditSpec() {
@@ -43,6 +43,21 @@ export default function EditSpec() {
     });
   };
 
+  const onAddSection = () => {
+    setData(d => {
+      const sections = [...(d.sections||[]), { title: '', items: [] }];
+      return { ...d, sections };
+    });
+  };
+
+  const onDelSection = (secIdx) => {
+    setData(d => {
+      const sections = [...(d.sections||[])];
+      sections.splice(secIdx, 1);
+      return { ...d, sections };
+    });
+  };
+
   const onChangeItem = (secIdx, itemIdx, val) => {
     setData(d => {
       const sections = [...(d.sections||[])];
@@ -58,7 +73,11 @@ export default function EditSpec() {
     setBusy(true);
     try {
       const payload = { ...data, productKey };
-      await saveSpec(productKey, payload);
+      if (isNew) {
+        await createSpec(payload);
+      } else {
+        await updateSpec(id, payload);
+      }
       alert('Spécification enregistrée.');
       nav('/admin/specs');
     } finally { setBusy(false); }
@@ -109,23 +128,42 @@ export default function EditSpec() {
 
         <hr />
 
-        <h3 className="font-semibold">Sections</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="font-semibold">Sections</h3>
+          <button 
+            type="button" 
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700" 
+            onClick={onAddSection}
+          >
+            + Ajouter section
+          </button>
+        </div>
+        
         <div className="space-y-6">
           {(data.sections||[]).map((sec, sIdx) => (
             <div key={sIdx} className="bg-gray-50 rounded p-3 border">
-              <input
-                className="w-full border rounded px-2 py-1 mb-2"
-                value={sec.title || ''}
-                onChange={e=>{
-                  const title = e.target.value;
-                  setData(d => {
-                    const sections = [...(d.sections||[])];
-                    sections[sIdx] = { ...sections[sIdx], title };
-                    return { ...d, sections };
-                  });
-                }}
-                placeholder="Titre de section (ex: Qualité / Quality)"
-              />
+              <div className="flex justify-between items-start mb-2">
+                <input
+                  className="flex-1 border rounded px-2 py-1 mr-2"
+                  value={sec.title || ''}
+                  onChange={e=>{
+                    const title = e.target.value;
+                    setData(d => {
+                      const sections = [...(d.sections||[])];
+                      sections[sIdx] = { ...sections[sIdx], title };
+                      return { ...d, sections };
+                    });
+                  }}
+                  placeholder="Titre de section (ex: Qualité / Quality)"
+                />
+                <button 
+                  type="button" 
+                  className="text-red-600 underline text-sm" 
+                  onClick={()=>onDelSection(sIdx)}
+                >
+                  Supprimer section
+                </button>
+              </div>
 
               <div className="space-y-2">
                 {(sec.items||[]).map((it, iIdx) => (

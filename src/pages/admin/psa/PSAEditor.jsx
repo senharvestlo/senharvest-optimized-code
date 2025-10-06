@@ -1,6 +1,6 @@
 // src/pages/admin/psa/PSAEditor.jsx
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import html2pdf from 'html2pdf.js';
+import { downloadCleanPDF } from '../../../utils/html2pdfSafe';
 import { createPSA, getPSA, updatePSA } from '../../../services/psa';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
@@ -133,7 +133,7 @@ const waitTick = () => new Promise(r=>setTimeout(r,0));
 
 export default function PSAEditor() {
   const { id } = useParams();           // "new" ou docId
-  const isNew = id === 'new';
+  const isNew = !id || id === 'new';    // Si pas d'ID ou "new", c'est un nouveau document
   const nav = useNavigate();
   const location = useLocation();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -240,18 +240,9 @@ export default function PSAEditor() {
   };
 
   const onDownload = async () => {
-    await waitTick(); // évite PDF vide/about:blank
-    const node = docRef.current;
+    const node = document.getElementById('psa-document');
     const filename = `PSA-${form.ref || new Date().toISOString().slice(0,10)}.pdf`;
-    const opt = {
-      margin: 0.5,
-      filename,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all','css','legacy'] },
-    };
-    await html2pdf().set(opt).from(node).save();
+    await downloadCleanPDF(node, filename);
   };
 
   // Vérification d'authentification après tous les hooks
@@ -393,22 +384,16 @@ export default function PSAEditor() {
       {/* ================== APERCU DOCUMENT ================== */}
       <div id="psa-document" ref={docRef}
            className="max-w-5xl mx-auto bg-white shadow border rounded p-8 print:p-0 print:shadow-none">
-        {/* Header : logos ICC + SenHarvest */}
-        <div className="flex items-start justify-between gap-4 border-b pb-4">
-          <div className="flex items-start gap-3">
-            <img
-              src="/icc%20logo.png" alt="ICC"
-              className="h-12" onError={(e)=>{ e.currentTarget.style.display='none'; }}
-            />
-            <img
-              src="/senharvest-logo.png" alt="SenHarvest"
-              className="h-12" onError={(e)=>{ e.currentTarget.style.display='none'; }}
-            />
-          </div>
-          <div className="text-right">
-            <h1 className="text-2xl font-bold text-blue-800">{T.title}</h1>
-            <p className="text-gray-600 text-sm">{T.subtitle}</p>
-            <p className="text-xs text-gray-500 mt-1">
+        {/* Header : logo ICC uniquement */}
+        <div className="pdf-header flex items-start gap-4 border-b pb-4">
+          <img
+            src="/icc%20logo.png" alt="ICC - International Chamber of Commerce"
+            className="h-12" onError={(e)=>{ e.currentTarget.style.display='none'; }}
+          />
+          <div>
+            <h1 className="text-lg font-bold text-blue-800 leading-tight">{T.title}</h1>
+            <p className="text-gray-600 text-sm leading-relaxed">{T.subtitle}</p>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               {form.ref ? `Ref: ${form.ref}` : ''} {form.ref && ' · '} {fmtDate(form.dateIssued)}
             </p>
           </div>

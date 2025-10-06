@@ -4,33 +4,63 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  Timestamp
 } from "firebase/firestore";
 
-import { db } from "../config/firebase";
+import { getDb } from "../config/firebase";
 
-// CRUD: Proformas / Quotations
-export const createDoc = async (type, data) => {
-  if (!db) { console.warn("Firestore not initialized, createDoc skipped."); return null; }
-  const col = collection(db, type);
-  return await addDoc(col, data);
+const COLLECTION_NAME = "contact_requests";
+
+export const saveContactRequest = async (contactData) => {
+  const db = await getDb();
+  try {
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+      ...contactData,
+      createdAt: Timestamp.now(),
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error("Error saving contact request:", error);
+    throw error;
+  }
 };
 
-export const getDocsList = async (type) => {
-  if (!db) { console.warn("Firestore not initialized, getDocsList skipped."); return []; }
-  const col = collection(db, type);
-  const snap = await getDocs(col);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+export const getContactRequests = async () => {
+  const db = await getDb();
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("Error getting contact requests:", error);
+    throw error;
+  }
 };
 
-export const updateDocById = async (type, id, data) => {
-  if (!db) { console.warn("Firestore not initialized, updateDocById skipped."); return null; }
-  const ref = doc(db, type, id);
-  return await updateDoc(ref, data);
+export const updateContactRequest = async (id, updatedData) => {
+  const db = await getDb();
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(docRef, {
+      ...updatedData,
+      updatedAt: Timestamp.now(),
+    });
+  } catch (error) {
+    console.error("Error updating contact request:", error);
+    throw error;
+  }
 };
 
-export const deleteDocById = async (type, id) => {
-  if (!db) { console.warn("Firestore not initialized, deleteDocById skipped."); return null; }
-  const ref = doc(db, type, id);
-  return await deleteDoc(ref);
+export const deleteContactRequest = async (id) => {
+  const db = await getDb();
+  try {
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error("Error deleting contact request:", error);
+    throw error;
+  }
 };

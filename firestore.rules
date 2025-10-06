@@ -4,41 +4,46 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
     function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+      return request.auth.token.admin == true;
     }
 
-    // Contacts: lecture admin uniquement, écriture publique
-    match /contacts/{id} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+    // Admin-only collections
+    match /ncnda/{docId} {
+      allow read, write: if isAdmin();
     }
-
-    // Proformas/Devis (docs collection)
-    match /docs/{id} {
-      allow read: if isAdmin();
-      allow create, update, delete: if isAdmin();
+    match /psa/{docId} { // Profit-Sharing Agreements
+      allow read, write: if isAdmin();
     }
-
-    // NCNDA
-    match /ncnda/{id} {
-      allow read: if isAdmin();
-      allow create, update, delete: if isAdmin();
+    match /proformas/{docId} {
+      allow read, write: if isAdmin();
     }
-
-    // PSA (Profit-Sharing Agreements)
-    match /psa/{id} {
-      allow read: if isAdmin();
-      allow create, update, delete: if isAdmin();
+    match /quotations/{docId} {
+      allow read, write: if isAdmin();
     }
-
-    // Spécifications produits
-    match /product_specs/{id} {
+    match /product_specs/{docId} {
       allow read: if true;           // public: visible côté vitrine
       allow create, update, delete: if isAdmin();
     }
 
-    // Meta, settings si besoin
+    // Contact form submissions: création ouverte (site public) + lecture admin
+    match /contact_requests/{docId} {
+      allow create: if true; // visiteurs peuvent écrire
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Legacy collections (maintenir compatibilité)
+    match /contacts/{id} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+    match /docs/{id} {
+      allow read: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
     match /settings/{id} {
       allow read: if true;
       allow write: if isAdmin();

@@ -7,7 +7,7 @@ import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
-import { storage } from '../../config/firebase';
+import { getStorageLazy } from '../../config/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 // Removed saveTradeDocMeta import
 

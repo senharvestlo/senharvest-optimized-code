@@ -19,7 +19,6 @@ import PSAList from './pages/admin/psa/PSAList';
 import SpecsList from './pages/admin/specs/SpecsList';
 import EditSpec from './pages/admin/specs/EditSpec';
 import { AuthProvider } from './context/AuthContext';
-import AuthDebug from './components/debug/AuthDebug';
 import './App.css';
 
 /**
@@ -209,7 +208,6 @@ function App() {
           <Route path="/*" element={<MainShell/>} />
         </Routes>
         <WhatsAppFloat />
-        <AuthDebug />
       </BrowserRouter>
     </AuthProvider>
   );

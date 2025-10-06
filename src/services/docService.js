@@ -1,7 +1,7 @@
-import { auth, db } from '../config/firebase';
+import { auth, getDb } from '../config/firebase';
 import {
   addDoc, updateDoc, deleteDoc, getDoc, getDocs,
-  collection, doc, query, orderBy, limit, serverTimestamp
+  collection, doc, query, orderBy, limit, Timestamp
 } from 'firebase/firestore';
 
 function uid() { return auth.currentUser?.uid || null; }
@@ -9,53 +9,86 @@ function uid() { return auth.currentUser?.uid || null; }
 export const COL_PROFORMAS  = 'proformas';
 export const COL_QUOTATIONS = 'quotations';
 
+// --- Proformas ---
 export async function createProforma(data) {
-  const ownerUid = uid();
-  if (!ownerUid) throw new Error('Not authenticated');
+  const db = await getDb();
   const ref = await addDoc(collection(db, COL_PROFORMAS), {
-    ...data, ownerUid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    ...data,
+    uid: uid(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   });
   return ref.id;
-}
-export async function updateProforma(id, data) {
-  const ref = doc(db, COL_PROFORMAS, id);
-  await updateDoc(ref, { ...data, updatedAt: serverTimestamp() });
-}
-export async function deleteProforma(id) {
-  await deleteDoc(doc(db, COL_PROFORMAS, id));
-}
-export async function getProforma(id) {
-  const s = await getDoc(doc(db, COL_PROFORMAS, id));
-  return s.exists() ? { id: s.id, ...s.data() } : null;
-}
-export async function listProformas(max = 200) {
-  const q = query(collection(db, COL_PROFORMAS), orderBy('updatedAt', 'desc'), limit(max));
-  const snaps = await getDocs(q);
-  return snaps.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// Quotations
+export async function updateProforma(id, data) {
+  const db = await getDb();
+  await updateDoc(doc(db, COL_PROFORMAS, id), {
+    ...data,
+    updatedAt: Timestamp.now(),
+  });
+}
+
+export async function deleteProforma(id) {
+  const db = await getDb();
+  await deleteDoc(doc(db, COL_PROFORMAS, id));
+}
+
+export async function getProforma(id) {
+  const db = await getDb();
+  const s = await getDoc(doc(db, COL_PROFORMAS, id));
+  return s.exists() ? ({ id: s.id, ...s.data() }) : null;
+}
+
+export async function listProformas(limitCount = 50) {
+  const db = await getDb();
+  const q = query(
+    collection(db, COL_PROFORMAS),
+    orderBy('updatedAt', 'desc'),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// --- Quotations ---
 export async function createQuotation(data) {
-  const ownerUid = uid();
-  if (!ownerUid) throw new Error('Not authenticated');
+  const db = await getDb();
   const ref = await addDoc(collection(db, COL_QUOTATIONS), {
-    ...data, ownerUid, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+    ...data,
+    uid: uid(),
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   });
   return ref.id;
 }
+
 export async function updateQuotation(id, data) {
-  const ref = doc(db, COL_QUOTATIONS, id);
-  await updateDoc(ref, { ...data, updatedAt: serverTimestamp() });
+  const db = await getDb();
+  await updateDoc(doc(db, COL_QUOTATIONS, id), {
+    ...data,
+    updatedAt: Timestamp.now(),
+  });
 }
+
 export async function deleteQuotation(id) {
+  const db = await getDb();
   await deleteDoc(doc(db, COL_QUOTATIONS, id));
 }
+
 export async function getQuotation(id) {
+  const db = await getDb();
   const s = await getDoc(doc(db, COL_QUOTATIONS, id));
-  return s.exists() ? { id: s.id, ...s.data() } : null;
+  return s.exists() ? ({ id: s.id, ...s.data() }) : null;
 }
-export async function listQuotations(max = 200) {
-  const q = query(collection(db, COL_QUOTATIONS), orderBy('updatedAt', 'desc'), limit(max));
-  const snaps = await getDocs(q);
-  return snaps.docs.map(d => ({ id: d.id, ...d.data() }));
+
+export async function listQuotations(limitCount = 50) {
+  const db = await getDb();
+  const q = query(
+    collection(db, COL_QUOTATIONS),
+    orderBy('updatedAt', 'desc'),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }

@@ -1,40 +1,32 @@
 // src/services/ncnda.js
-import { db } from '../config/firebase';
-import {
-  collection, addDoc, doc, getDoc, updateDoc, deleteDoc,
-  getDocs, query, orderBy
-} from 'firebase/firestore';
+import { getDb } from '../config/firebase';
+import { addDoc, collection, doc, getDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 
 const COL = 'ncnda';
 
-export async function listNCNDA() {
+export async function createNCNDA(data) {
+  const db = await getDb();
+  const ref = await addDoc(collection(db, COL), { ...data, createdAt: Timestamp.now(), updatedAt: Timestamp.now() });
+  return ref.id;
+}
+export async function updateNCNDA(id, data) {
+  const db = await getDb();
+  await updateDoc(doc(db, COL, id), { ...data, updatedAt: Timestamp.now() });
+}
+export async function getNCNDA(id) {
+  const db = await getDb();
+  const snap = await getDoc(doc(db, COL, id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+export async function deleteNCNDA(id) {
+  const db = await getDb();
+  await deleteDoc(doc(db, COL, id));
+}
+
+// Alias pour compatibilité
+export const listNCNDA = async () => {
+  const db = await getDb();
   const q = query(collection(db, COL), orderBy('updatedAt', 'desc'));
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-export async function getNCNDA(id) {
-  const ref = doc(db, COL, id);
-  const s = await getDoc(ref);
-  return s.exists() ? ({ id: s.id, ...s.data() }) : null;
-}
-
-export async function createNCNDA(payload) {
-  const ref = await addDoc(collection(db, COL), {
-    ...payload,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
-  return ref.id;
-}
-
-export async function updateNCNDA(id, payload) {
-  await updateDoc(doc(db, COL, id), {
-    ...payload,
-    updatedAt: new Date(),
-  });
-}
-
-export async function deleteNCNDA(id) {
-  await deleteDoc(doc(db, COL, id));
-}
+};
