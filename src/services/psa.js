@@ -1,6 +1,6 @@
 // src/services/psa.js
 import { getDb } from '../config/firebase';
-import { addDoc, collection, doc, getDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy, getDocs } from 'firebase/firestore';
 
 const COL = 'psa';
 
@@ -22,3 +22,11 @@ export async function deletePSA(id) {
   const db = await getDb();
   await deleteDoc(doc(db, COL, id));
 }
+
+// Alias pour compatibilité
+export const listPSA = async () => {
+  const db = await getDb();
+  const q = query(collection(db, COL), orderBy('updatedAt', 'desc'));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+};

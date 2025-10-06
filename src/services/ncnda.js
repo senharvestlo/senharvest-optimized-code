@@ -1,6 +1,6 @@
 // src/services/ncnda.js
 import { getDb } from '../config/firebase';
-import { addDoc, collection, doc, getDoc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc, deleteDoc, Timestamp, query, orderBy, getDocs } from 'firebase/firestore';
 
 const COL = 'ncnda';
 
