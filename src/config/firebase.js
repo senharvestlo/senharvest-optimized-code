@@ -1,68 +1,81 @@
-// src/config/firebase.js
-import { initializeApp, getApps, getApp, SDK_VERSION } from 'firebase/app';
+// v9 modular, robuste + rétro-compat
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 import { getFunctions } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 
-// 1) Config depuis env
-const cfg = {
+// ---- Chargement config depuis .env (Netlify) ----
+const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID,
-  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID, // optionnel
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-(function assertEnv(o) {
-  const missing = Object.entries(o)
-    .filter(([k, v]) => !v && k !== 'measurementId')
-    .map(([k]) => k);
-  if (missing.length) {
-    const msg = `Firebase n'est pas configuré. Variables manquantes: ${missing.join(', ')}.
-Ajoutez REACT_APP_FIREBASE_* dans .env.local et dans Netlify, puis redeploy.`;
-    console.error(msg);
-    throw new Error(msg);
-  }
-})(cfg);
+// Petit log utile (masqué en prod si besoin)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🔥 Firebase Config (masked):', {
+    ...firebaseConfig,
+    apiKey: firebaseConfig.apiKey ? '***' : '(missing)'
+  });
+}
 
-// 2) Init unique
-const app = getApps().length ? getApp() : initializeApp(cfg);
+// ---- Initialisation sûre ----
+let app;
+try {
+  app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+} catch (e) {
+  console.error('❌ Firebase init error:', e);
+}
 
-// 3) Services non "casse-gueule"
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
-const region = process.env.REACT_APP_FIREBASE_FUNCTIONS_REGION || process.env.REACT_APP_FIREBASE_REGION || 'us-central1';
-const functions = getFunctions(app, region);
+// Instances paresseuses (évite "service ... not available")
+let _db = null;
+let _auth = null;
+let _storage = null;
+let _functions = null;
+export const googleProvider = new GoogleAuthProvider();
 
-// 4) Firestore en lazy
-let _dbPromise = null;
 export function getDb() {
-  if (!_dbPromise) {
-    _dbPromise = import('firebase/firestore').then(async (m) => {
-      const { getFirestore, enableIndexedDbPersistence } = m;
-      const db = getFirestore(app);
-      try { await enableIndexedDbPersistence(db); } catch (_) {}
-      return db;
-    });
+  if (!_db) {
+    _db = getFirestore(app);
   }
-  return _dbPromise;
+  return _db;
 }
-export async function ensureDb() { return getDb(); }
+export function ensureDb() { return getDb(); }
 
-// 5) Storage en lazy (évite "Service storage is not available")
-let _storagePromise = null;
+export function getAuthSafe() {
+  if (!_auth) _auth = getAuth(app);
+  return _auth;
+}
+
 export function getStorageLazy() {
-  if (!_storagePromise) {
-    _storagePromise = import('firebase/storage').then((m) => {
-      const { getStorage } = m;
-      return getStorage(app);
-    });
-  }
-  return _storagePromise;
+  if (!_storage) _storage = getStorage(app);
+  return _storage;
 }
 
-export { app, auth, functions, googleProvider };
-export const FIREBASE_READY = true;
+export function getFunctionsLazy(region = (process.env.REACT_APP_FIREBASE_REGION || 'us-central1')) {
+  if (!_functions) _functions = getFunctions(app, region);
+  return _functions;
+}
 
-console.log('🔥 Firebase SDK', SDK_VERSION, 'Project:', cfg.projectId);
+// ---- Exports attendus par ton code existant ----
+export const FIREBASE_READY = !!app;
+export { app };
+
+// *Compat* : certains fichiers importaient `db` / `storage` / `functions`
+export const db = (() => { try { return getDb(); } catch { return null; } })();
+export const auth = (() => { try { return getAuthSafe(); } catch { return null; } })();
+export const storage = (() => { try { return getStorageLazy(); } catch { return null; } })();
+export const functions = (() => { try { return getFunctionsLazy(); } catch { return null; } })();
+
+// Callables possibles (si Cloud Functions déployées)
+import { httpsCallable } from 'firebase/functions';
+export const callGrantAdmin = (() => {
+  try { return httpsCallable(getFunctionsLazy(), 'grantAdmin'); } catch { return null; }
+})();
+export const callSendContactEmail = (() => {
+  try { return httpsCallable(getFunctionsLazy(), 'sendContactEmail'); } catch { return null; }
+})();

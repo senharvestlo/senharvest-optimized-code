@@ -1,49 +1,58 @@
-// src/services/firestoreDocs.js
-import { getDb } from '../config/firebase';
 import {
-  addDoc, collection, doc, getDoc, getDocs,
-  orderBy, query, updateDoc, deleteDoc, Timestamp,
+  addDoc, collection, deleteDoc, doc, getDoc, getDocs,
+  orderBy, query, serverTimestamp, updateDoc
 } from 'firebase/firestore';
+import { getDb } from '../config/firebase';
 
-export async function createDoc(col, data) {
-  const db = await getDb();
-  const ref = await addDoc(collection(db, col), {
+// CREATE
+export async function createDoc(colName, data) {
+  const db = getDb();
+  const ref = await addDoc(collection(db, colName), {
     ...data,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
   });
-  return ref.id;
+  return { id: ref.id };
 }
 
-export async function updateDocById(col, id, data) {
-  const db = await getDb();
-  await updateDoc(doc(db, col, id), { ...data, updatedAt: Timestamp.now() });
+// READ one
+export async function getDocById(colName, id) {
+  const db = getDb();
+  const snap = await getDoc(doc(db, colName, id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() };
 }
 
-export async function getDocById(col, id) {
-  const db = await getDb();
-  const snap = await getDoc(doc(db, col, id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+// LIST
+export async function listDocs(colName) {
+  const db = getDb();
+  const q = query(collection(db, colName), orderBy('updatedAt', 'desc'));
+  const s = await getDocs(q);
+  return s.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-export async function listDocs(col) {
-  const db = await getDb();
-  const q = query(collection(db, col), orderBy('updatedAt', 'desc'));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+// UPDATE
+export async function updateDocById(colName, id, data) {
+  const db = getDb();
+  await updateDoc(doc(db, colName, id), {
+    ...data,
+    updatedAt: serverTimestamp()
+  });
+  return { id };
 }
 
-export async function deleteDocById(col, id) {
-  const db = await getDb();
-  await deleteDoc(doc(db, col, id));
+// DELETE
+export async function deleteDocById(colName, id) {
+  const db = getDb();
+  await deleteDoc(doc(db, colName, id));
+  return { id };
 }
 
-// Alias pour compatibilité
-export const saveDoc = async (type, id, data) => {
-  if (id) {
-    return updateDocById(type, id, data);
-  } else {
-    const newId = await createDoc(type, data);
-    return { id: newId, ...data };
+// *Compat* : certains écrans appellent saveDoc(col, id, data)
+export async function saveDoc(colName, id, data) {
+  if (!id || id === 'new') {
+    return createDoc(colName, data); // retourne {id}
   }
-};
+  await updateDocById(colName, id, data);
+  return { id };
+}
