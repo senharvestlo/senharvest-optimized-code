@@ -1,0 +1,14 @@
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# Désactiver COOP/COEP pour l'auth (Google popup/redirect)
+# Si tu utilises /admin/* pour le login :
+/admin/*
+  Cross-Origin-Opener-Policy: unsafe-none
+  Cross-Origin-Embedder-Policy: unsafe-none
+
+# Et pour la redirection Firebase (parfois utilisée):
+/__/auth/*
+  Cross-Origin-Opener-Policy: unsafe-none
+  Cross-Origin-Embedder-Policy: unsafe-none

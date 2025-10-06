@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { listPSA, deletePSA } from '../../../services/psa';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { FIREBASE_READY, getDb } from '../../../config/firebase';
 
 function useDebouncedValue(value, delay = 300) {
   const [v, setV] = useState(value);
@@ -30,7 +31,12 @@ export default function PSAList() {
       console.error(e); setErr(e.message || 'Erreur chargement');
     } finally { setLoading(false); }
   };
-  useEffect(()=>{ fetchAll(); }, []);
+  useEffect(() => {
+    if (!FIREBASE_READY) return;        // garde-fou
+    // Optionnel: ping simple pour "hydrater" le provider
+    try { getDb(); } catch (e) { console.error(e); return; }
+    fetchAll();
+  }, []);
 
   const filtered = useMemo(() => {
     const term = dq.trim().toLowerCase();

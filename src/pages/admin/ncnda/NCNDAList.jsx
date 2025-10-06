@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { listNCNDA, deleteNCNDA } from '../../../services/ncnda';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { FIREBASE_READY, getDb } from '../../../config/firebase';
 
 function useDebouncedValue(value, delay = 300) {
   const [v, setV] = useState(value);
@@ -39,6 +40,9 @@ export default function NCNDAList() {
   };
 
   useEffect(() => {
+    if (!FIREBASE_READY) return;        // garde-fou
+    // Optionnel: ping simple pour "hydrater" le provider
+    try { getDb(); } catch (e) { console.error(e); return; }
     fetchAll();
   }, []);
 
