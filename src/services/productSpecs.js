@@ -1,95 +1,54 @@
 // src/services/productSpecs.js
-import { getDb } from '../config/firebase';
 import {
-  collection, addDoc, doc, getDoc, updateDoc, deleteDoc,
-  getDocs, query, orderBy, where, Timestamp
+  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
+  doc, collection, serverTimestamp, query, orderBy, limit
 } from 'firebase/firestore';
+import { getDb } from '../config/firebase';
 
-const COL = 'product_specs';
+const KIND = 'productSpecs';
 
 export function defaultSpec() {
   return {
-    productKey: '',    // ex: 'peanuts'
-    lang: 'fr',
+    productKey: '',
     title: '',
-    bullets: [],       // ['Humidité ≤ 8%', 'Défauts ≤ 2%']
-    pdfNotes: '',      // texte libre optionnel
-    updatedAt: Timestamp.now(),
-    createdAt: Timestamp.now(),
+    lang: 'fr',
+    visible: true,
+    sections: [
+      { label: 'Qualité', items: [] },
+      { label: 'Conditionnement', items: [] },
+      { label: 'Origine', items: [] },
+      { label: 'Inspection', items: [] },
+    ],
+    createdAt: null,
+    updatedAt: null,
   };
 }
 
-export async function listSpecs({ productKey } = {}) {
+export async function listSpecs({ max=200 } = {}) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour listSpecs');
-    return []; // Retourne tableau vide au lieu de throw
-  }
-  const ref = collection(db, COL);
-  let q;
-  
-  if (productKey) {
-    q = query(ref, where('productKey', '==', productKey));
-  } else {
-    q = query(ref, orderBy('updatedAt', 'desc'));
-  }
-  
+  const q = query(collection(db, KIND), orderBy('updatedAt','desc'), limit(max));
   const snap = await getDocs(q);
-  const results = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  
-  if (productKey) {
-    results.sort((a, b) => {
-      const dateA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
-      const dateB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
-      return dateB - dateA;
-    });
-  }
-  
-  return results;
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export async function getSpec(id) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour getSpec');
-    throw new Error('Service Firestore non disponible');
-  }
-  const s = await getDoc(doc(db, COL, id));
-  return s.exists() ? ({ id: s.id, ...s.data() }) : null;
+  const snap = await getDoc(doc(db, KIND, id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function createSpec(payload) {
+export async function createSpec(data) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour createSpec');
-    throw new Error('Service Firestore non disponible');
-  }
-  const ref = await addDoc(collection(db, COL), {
-    ...defaultSpec(),
-    ...payload,
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-  });
-  return ref.id;
+  const ref = await addDoc(collection(db, KIND), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  return { id: ref.id };
 }
 
-export async function updateSpec(id, payload) {
+export async function updateSpec(id, data) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour updateSpec');
-    throw new Error('Service Firestore non disponible');
-  }
-  await updateDoc(doc(db, COL, id), {
-    ...payload,
-    updatedAt: Timestamp.now(),
-  });
+  await updateDoc(doc(db, KIND, id), { ...data, updatedAt: serverTimestamp() });
 }
 
 export async function deleteSpec(id) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour deleteSpec');
-    throw new Error('Service Firestore non disponible');
-  }
-  await deleteDoc(doc(db, COL, id));
+  await deleteDoc(doc(db, KIND, id));
 }

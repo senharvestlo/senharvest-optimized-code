@@ -1,14 +1,17 @@
-/*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
+# Configuration Netlify Headers
+# Désactiver COOP/COEP pour permettre les popups Google Auth
 
-# Désactiver COOP/COEP pour l'auth (Google popup/redirect)
-# Si tu utilises /admin/* pour le login :
+# Header global moins restrictif pour éviter les problèmes de popup
+/*
+  Cross-Origin-Opener-Policy: unsafe-none
+  Cross-Origin-Embedder-Policy: unsafe-none
+
+# Routes admin spécifiques
 /admin/*
   Cross-Origin-Opener-Policy: unsafe-none
   Cross-Origin-Embedder-Policy: unsafe-none
 
-# Et pour la redirection Firebase (parfois utilisée):
+# Routes Firebase Auth
 /__/auth/*
   Cross-Origin-Opener-Policy: unsafe-none
   Cross-Origin-Embedder-Policy: unsafe-none

@@ -1,78 +1,51 @@
+// src/services/firestoreDocs.js
 import {
-  addDoc, collection, deleteDoc, doc, getDoc, getDocs,
-  orderBy, query, serverTimestamp, updateDoc
+  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
+  doc, collection, serverTimestamp, query, orderBy, limit
 } from 'firebase/firestore';
 import { getDb } from '../config/firebase';
 
-// CREATE
-export async function createDoc(colName, data) {
+export async function createDoc(kind, data) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour createDoc');
-    throw new Error('Service Firestore non disponible');
-  }
-  const ref = await addDoc(collection(db, colName), {
+  const col = collection(db, kind);
+  const payload = {
     ...data,
     createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp()
-  });
-  return { id: ref.id };
+    updatedAt: serverTimestamp(),
+  };
+  const ref = await addDoc(col, payload);
+  return { id: ref.id, ...payload };
 }
 
-// READ one
-export async function getDocById(colName, id) {
+export async function updateDocById(kind, id, data) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour getDocById');
-    throw new Error('Service Firestore non disponible');
-  }
-  const snap = await getDoc(doc(db, colName, id));
-  if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() };
+  const ref = doc(db, kind, id);
+  const payload = { ...data, updatedAt: serverTimestamp() };
+  await updateDoc(ref, payload);
+  return { id, ...payload };
 }
 
-// LIST
-export async function listDocs(colName) {
+export async function getDocById(kind, id) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour listDocs');
-    return []; // Retourne tableau vide au lieu de throw
-  }
-  const q = query(collection(db, colName), orderBy('updatedAt', 'desc'));
-  const s = await getDocs(q);
-  return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  const ref = doc(db, kind, id);
+  const snap = await getDoc(ref);
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-// UPDATE
-export async function updateDocById(colName, id, data) {
+export async function deleteDocById(kind, id) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour updateDocById');
-    throw new Error('Service Firestore non disponible');
-  }
-  await updateDoc(doc(db, colName, id), {
-    ...data,
-    updatedAt: serverTimestamp()
-  });
-  return { id };
+  await deleteDoc(doc(db, kind, id));
 }
 
-// DELETE
-export async function deleteDocById(colName, id) {
+export async function listDocs(kind, { order='updatedAt', desc=true, max=100 } = {}) {
   const db = getDb();
-  if (!db) {
-    console.error('❌ Firestore non disponible pour deleteDocById');
-    throw new Error('Service Firestore non disponible');
-  }
-  await deleteDoc(doc(db, colName, id));
-  return { id };
+  const q = query(collection(db, kind), orderBy(order, desc ? 'desc' : 'asc'), limit(max));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-// *Compat* : certains écrans appellent saveDoc(col, id, data)
-export async function saveDoc(colName, id, data) {
-  if (!id || id === 'new') {
-    return createDoc(colName, data); // retourne {id}
-  }
-  await updateDocById(colName, id, data);
-  return { id };
+// compat pour ton code existant
+export async function saveDoc(kind, id, data) {
+  if (!id) return createDoc(kind, data);
+  return updateDocById(kind, id, data);
 }
