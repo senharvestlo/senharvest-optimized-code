@@ -1,20 +1,22 @@
-# 🎯 CHATGPT REVIEW - SenHarvest Website v1.0.0
+# 🎯 CHATGPT REVIEW - SenHarvest Website v1.1.0
 
 ## 📋 **ÉTAT ACTUEL DU PROJET**
 
 **🔗 Repository :** `https://github.com/senharvestlo/senharvest-optimized-code`  
-**🏷️ Tag :** `v1.0.0-firebase-fixes`  
+**🏷️ Tag :** `v1.1.0-chatgpt-fixes`  
 **🌿 Branch :** `upgrade/firebase-pdf-admin`  
-**📝 Dernier commit :** `808ce8a`
+**📝 Dernier commit :** `9da3ef6`
 
 ---
 
 ## ✅ **CORRECTIONS APPLIQUÉES**
 
-### 🔥 **Problème principal résolu : "Service firestore is not available"**
+### 🔥 **Problèmes principaux résolus :**
 
-**Cause :** Firebase Firestore non initialisé correctement au démarrage  
-**Solution :** Gestion d'erreur robuste avec retry automatique
+**1. "Service firestore is not available"** → Lazy getters avec gestion d'erreur robuste  
+**2. "Service functions is not available"** → Callables vraiment lazy  
+**3. "Cross-Origin-Opener-Policy"** → signInWithRedirect direct  
+**4. Imports/exports manquants** → Tous les alias ajoutés
 
 ### 📁 **Fichiers modifiés :**
 
