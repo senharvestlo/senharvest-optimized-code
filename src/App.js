@@ -8,6 +8,7 @@ import { Home, Products, Services, Mission, Contact, PrivacyPolicy, CookiePolicy
 import AdminDashboard from './components/pages/AdminDashboard';
 import ProtectedRoute from './components/security/ProtectedRoute';
 import AdminLoginModal from './components/pages/AdminLoginModal';
+import './utils/testFirebaseConnection'; // Test Firebase disponible dans la console
 import './App.css';
 
 /**
