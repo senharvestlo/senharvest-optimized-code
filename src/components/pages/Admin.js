@@ -4,7 +4,8 @@ import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
-import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { useAuth } from '../../context/AuthContext';
+import AdminLoginModal from './admin/AdminLoginModal';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
 import { storage } from '../../config/firebase';
@@ -13,7 +14,7 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
-  const { isAdmin, loading } = useAdminAuth();
+  const { user, isAdmin, loading } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('terms');
   const [pdfType, setPdfType] = useState('proforma'); // 'proforma' | 'quotation'
@@ -233,6 +234,15 @@ const Admin = ({ onAccess }) => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Chargement...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Si l'utilisateur n'est pas connecté ou n'est pas admin, afficher le modal de connexion
+  if (!user || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <AdminLoginModal />
       </div>
     );
   }
