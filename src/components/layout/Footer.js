@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { COMPANY } from '../../config/company';
 import { Container } from '../ui';
-import FooterAdminTrigger from './FooterAdminTrigger';
-// AdminLoginModal supprimé - Firebase retiré
+import AdminLoginModal from '../pages/admin/AdminLoginModal';
 
 /**
  * Footer Component
- * Site footer with company information and links
+ * Site footer with company information and links + 3 clics admin
  */
 function Footer({ t, lang, setPage }) {
-  const [openLogin, setOpenLogin] = useState(false);
+  const navigate = useNavigate();
+  const [loginOpen, setLoginOpen] = useState(false);
+  const clicksRef = useRef({ count: 0, last: 0 });
+
+  const onLogoClick = () => {
+    const now = Date.now();
+    const diff = now - clicksRef.current.last;
+    clicksRef.current.last = now;
+
+    // Reset si > 1.5s entre clicks
+    if (diff > 1500) clicksRef.current.count = 0;
+
+    clicksRef.current.count += 1;
+    if (clicksRef.current.count >= 3) {
+      clicksRef.current.count = 0;
+      setLoginOpen(true);
+    }
+  };
 
   const handleFooterCompanyNameClick = () => {
     setPage('home');
   };
+
   return (
     <footer className="relative bg-brandGray-900 text-white py-12 overflow-hidden">
       {/* Background Image */}
@@ -33,9 +51,13 @@ function Footer({ t, lang, setPage }) {
         <div className="flex flex-col lg:flex-row justify-between items-center space-y-6 lg:space-y-0">
           {/* Company Info */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <FooterAdminTrigger onOpen={() => setOpenLogin(true)} />
-            </div>
+            {/* Logo cliquable 3x pour admin */}
+            <button 
+              onClick={onLogoClick}
+              className="w-10 h-10 flex items-center justify-center opacity-80 hover:opacity-100 transition"
+            >
+              <img src="/logo192.png" alt="SenHarvest" className="h-8 w-auto" />
+            </button>
             <button 
               onClick={handleFooterCompanyNameClick}
               className="text-left hover:opacity-80 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded"
@@ -85,7 +107,17 @@ function Footer({ t, lang, setPage }) {
         </div>
         
       </Container>
-      {/* AdminLoginModal supprimé - Firebase retiré */}
+
+      {/* Modal de connexion admin */}
+      {loginOpen && (
+        <AdminLoginModal
+          onClose={() => setLoginOpen(false)}
+          onSuccess={() => {
+            setLoginOpen(false);
+            navigate('/admin');
+          }}
+        />
+      )}
     </footer>
   );
 }

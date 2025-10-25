@@ -8,7 +8,6 @@ import { Container } from '../ui';
  */
 function Header({ t, lang, setLang, page, setPage, onAdminAccess }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [clickCount, setClickCount] = useState(0);
   
   const navigationItems = [
     { k: 'home', l: t.home },
@@ -25,15 +24,8 @@ function Header({ t, lang, setLang, page, setPage, onAdminAccess }) {
   };
 
   const handleLogoClick = () => {
-    setClickCount(prev => prev + 1);
-    if (clickCount >= 2) { // 3 clics (0, 1, 2)
-      if (onAdminAccess) {
-        onAdminAccess();
-      }
-      setClickCount(0);
-    }
-    // Reset le compteur après 3 secondes
-    setTimeout(() => setClickCount(0), 3000);
+    // Simple clic pour aller à la page d'accueil
+    setPage('home');
   };
 
   const handleCompanyNameClick = () => {
