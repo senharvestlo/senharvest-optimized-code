@@ -5,8 +5,6 @@ import ProformaHTML from '../../components/docs/ProformaHTML';
 import QuotationHTML from '../../components/docs/QuotationHTML';
 import NCNDALite from '../../components/docs/NCNDALite';
 import AdminProductSpecs from '../../components/admin/AdminProductSpecs';
-import { ProformaQwen } from '../../components/docs/ProformaQwen';
-import { QuotationQwen } from '../../components/docs/QuotationQwen';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
