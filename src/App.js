@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import useLang from './hooks/useLang';
 import { updateSEO } from './utils/seo';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import './App.css';
 
 /**
@@ -167,7 +170,16 @@ function MainShell() {
 }
 
 function App() {
-  return <MainShell />;
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<MainShell />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
 export default App;
