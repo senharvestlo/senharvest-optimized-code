@@ -1,32 +1,27 @@
-import { db } from '../config/firebase';
-import {
-  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
-
+// Service PSA simplifié sans Firebase
 const KIND = 'psa';
 
 export async function listPSA({ max=200 } = {}) {
-  const q = query(collection(db, KIND), orderBy('updatedAt','desc'), limit(max));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  console.log('Listing PSA documents');
+  return [];
 }
 
 export async function createPSA(data) {
-  const ref = await addDoc(collection(db, KIND), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  return { id: ref.id };
+  console.log('Creating PSA:', data);
+  return { id: Date.now() };
 }
 
 export async function getPSA(id) {
-  const snap = await getDoc(doc(db, KIND, id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  console.log('Getting PSA:', id);
+  return null;
 }
 
 export async function updatePSA(id, data) {
-  await updateDoc(doc(db, KIND, id), { ...data, updatedAt: serverTimestamp() });
+  console.log('Updating PSA:', id, data);
 }
 
 export async function deletePSA(id) {
-  await deleteDoc(doc(db, KIND, id));
+  console.log('Deleting PSA:', id);
 }
 
 // Compat

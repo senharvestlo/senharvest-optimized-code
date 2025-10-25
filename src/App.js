@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import useLang from './hooks/useLang';
 import { updateSEO } from './utils/seo';
 import { trackPageView, trackContactForm, trackAdminAccess } from './config/analytics';
 import { Header, Footer, WhatsAppFloat } from './components/layout';
 import { Home, Products, Services, Mission, Contact, PrivacyPolicy, CookiePolicy, QuotationPage } from './components/pages';
-import AdminDashboard from './components/pages/AdminDashboard';
-import ProtectedRoute from './components/security/ProtectedRoute';
-import AdminLoginModal from './components/pages/AdminLoginModal';
-import './utils/testFirebaseConnection'; // Test Firebase disponible dans la console
 import './App.css';
 
 /**
@@ -62,7 +57,7 @@ function MainShell() {
     console.log('Form submitted successfully');
   };
 
-  // Handle admin access
+  // Handle admin access - Simple modal
   const handleAdminAccess = () => {
     trackAdminAccess();
     setShowAdminModal(true);
@@ -148,33 +143,31 @@ function MainShell() {
       {/* Floating WhatsApp Button */}
       <WhatsAppFloat />
 
-      {/* Admin Login Modal */}
+      {/* Simple Admin Modal */}
       {showAdminModal && (
-        <AdminLoginModal onClose={() => setShowAdminModal(false)} />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
+          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-md p-6 relative">
+            <h2 className="text-xl font-semibold text-center mb-4 text-gray-800">
+              Accès Admin
+            </h2>
+            <p className="text-gray-600 text-center mb-4">
+              Fonctionnalité admin en cours de développement.
+            </p>
+            <button
+              onClick={() => setShowAdminModal(false)}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        {/* Main Shell with all pages */}
-        <Route path="/" element={<MainShell />} />
-        
-        {/* Page Admin protégée */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Router>
-  );
+  return <MainShell />;
 }
 
 export default App;

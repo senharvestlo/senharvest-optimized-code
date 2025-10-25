@@ -1,32 +1,27 @@
-import { db } from '../config/firebase';
-import {
-  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
-
+// Service NCNDA simplifié sans Firebase
 const KIND = 'ncnda';
 
 export async function listNCNDA({ max=200 } = {}) {
-  const q = query(collection(db, KIND), orderBy('updatedAt','desc'), limit(max));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  console.log('Listing NCNDA documents');
+  return [];
 }
 
 export async function createNCNDA(data) {
-  const ref = await addDoc(collection(db, KIND), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  return { id: ref.id };
+  console.log('Creating NCNDA:', data);
+  return { id: Date.now() };
 }
 
 export async function getNCNDA(id) {
-  const snap = await getDoc(doc(db, KIND, id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  console.log('Getting NCNDA:', id);
+  return null;
 }
 
 export async function updateNCNDA(id, data) {
-  await updateDoc(doc(db, KIND, id), { ...data, updatedAt: serverTimestamp() });
+  console.log('Updating NCNDA:', id, data);
 }
 
 export async function deleteNCNDA(id) {
-  await deleteDoc(doc(db, KIND, id));
+  console.log('Deleting NCNDA:', id);
 }
 
 // Compat

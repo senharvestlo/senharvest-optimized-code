@@ -1,8 +1,4 @@
-import { db } from '../config/firebase';
-import {
-  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
-
+// Service Product Specs simplifié sans Firebase
 const KIND = 'productSpecs';
 
 export function defaultSpec() {
@@ -23,27 +19,26 @@ export function defaultSpec() {
 }
 
 export async function listSpecs({ max=200 } = {}) {
-  const q = query(collection(db, KIND), orderBy('updatedAt','desc'), limit(max));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  console.log('Listing product specs');
+  return [];
 }
 
 export async function getSpec(id) {
-  const snap = await getDoc(doc(db, KIND, id));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  console.log('Getting spec:', id);
+  return null;
 }
 
 export async function createSpec(data) {
-  const ref = await addDoc(collection(db, KIND), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
-  return { id: ref.id };
+  console.log('Creating spec:', data);
+  return { id: Date.now() };
 }
 
 export async function updateSpec(id, data) {
-  await updateDoc(doc(db, KIND, id), { ...data, updatedAt: serverTimestamp() });
+  console.log('Updating spec:', id, data);
 }
 
 export async function deleteSpec(id) {
-  await deleteDoc(doc(db, KIND, id));
+  console.log('Deleting spec:', id);
 }
 
 // Compat

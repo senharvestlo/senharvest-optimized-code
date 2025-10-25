@@ -4,18 +4,15 @@ import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
 import AdminProductSpecs from '../AdminProductSpecs.jsx';
-import { useAuth } from '../../context/AuthContext';
-import AdminLoginModal from './admin/AdminLoginModal';
+// Admin simplifié sans Firebase
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
-import { storage } from '../../config/firebase';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+// Storage simplifié sans Firebase
 // Removed saveTradeDocMeta import
 
 const Admin = ({ onAccess }) => {
   const { lang } = useLang();
-  const { user, isAdmin, loading } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(true); // Admin toujours accessible
   const [activeTab, setActiveTab] = useState('terms');
   const [pdfType, setPdfType] = useState('proforma'); // 'proforma' | 'quotation'
   const [showBankInfo, setShowBankInfo] = useState(true);
@@ -60,10 +57,7 @@ const Admin = ({ onAccess }) => {
     }
   }, []);
 
-  // Synchroniser l'état d'authentification avec le hook
-  useEffect(() => {
-    setIsAuthenticated(isAdmin);
-  }, [isAdmin]);
+  // Admin toujours accessible sans Firebase
 
   useEffect(() => {
     if (onAccess) {
@@ -196,18 +190,14 @@ const Admin = ({ onAccess }) => {
       // Trigger browser download - Utiliser la nouvelle méthode sans about:blank
       await generateTradePDF(data);
 
-      // Optionnel: upload + métadonnées (l'utilisateur peut préférer download local uniquement)
+      // Optionnel: upload + métadonnées (simplifié sans Firebase)
       const { blob, filename } = await generateTradePDFBlob(data);
-      const path = `pdfs/${filename}`;
-      const fileRef = storageRef(storage, path);
-      await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
-      const url = await getDownloadURL(fileRef);
+      console.log('PDF generated:', filename);
+      // Upload désactivé sans Firebase
 
-      // Metadata saved to localStorage instead of Firestore
+      // Metadata saved to localStorage (simplifié sans Firebase)
       const metadata = {
         filename,
-        path,
-        url,
         type: data.type,
         number: data.number,
         date: data.date,
@@ -219,29 +209,15 @@ const Admin = ({ onAccess }) => {
       localStorage.setItem('lastPdfMetadata', JSON.stringify(metadata));
 
       alert(lang === 'fr' 
-        ? `PDF généré, téléversé et sauvegardé: ${path}` 
-        : `PDF generated, uploaded and saved: ${path}`);
+        ? `PDF généré et sauvegardé: ${filename}` 
+        : `PDF generated and saved: ${filename}`);
     } catch (err) {
       console.error('PDF generation/upload error:', err);
       alert(lang === 'fr' ? 'Erreur lors de la génération du PDF' : 'Error generating PDF');
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Si l'utilisateur n'est pas connecté ou n'est pas admin, afficher le modal de connexion
-  if (!user || !isAdmin) {
-    return <AdminLoginModal />;
-  }
+  // Admin simplifié - toujours accessible
 
   if (!isAuthenticated) {
     return (

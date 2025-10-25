@@ -1,32 +1,30 @@
-import { db } from '../config/firebase';
-import {
-  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp
-} from 'firebase/firestore';
-
+// Service de documents simplifié sans Firebase
 export async function listDocs(type) {
-  const snap = await getDocs(collection(db, `docs_${type}`));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Simulation de liste de documents
+  console.log('Listing docs for type:', type);
+  return [];
 }
 
 export async function getDocById(type, id) {
-  const ref = doc(db, `docs_${type}`, id);
-  const snap = await getDoc(ref);
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  // Simulation de récupération de document
+  console.log('Getting doc:', type, id);
+  return null;
 }
 
 export async function createDoc(type, data) {
-  const ref = await addDoc(collection(db, `docs_${type}`), {
-    ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
-  });
-  return { id: ref.id };
+  // Simulation de création de document
+  console.log('Creating doc:', type, data);
+  return { id: Date.now() };
 }
 
 export async function updateDocById(type, id, data) {
-  await updateDoc(doc(db, `docs_${type}`, id), { ...data, updatedAt: serverTimestamp() });
+  // Simulation de mise à jour de document
+  console.log('Updating doc:', type, id, data);
 }
 
 export async function deleteDocById(type, id) {
-  await deleteDoc(doc(db, `docs_${type}`, id));
+  // Simulation de suppression de document
+  console.log('Deleting doc:', type, id);
 }
 
 // Compat (là où ton code appelait "saveDoc")
