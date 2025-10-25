@@ -1,121 +1,63 @@
-# 🔥 Configuration Firebase pour SenHarvest
+# 🔥 Configuration Firebase
 
-## 📋 **Étapes de configuration :**
+## ⚠️ IMPORTANT : Variables d'environnement manquantes
 
-### **1. Créer un projet Firebase :**
-1. Allez sur [https://console.firebase.google.com/](https://console.firebase.google.com/)
-2. Cliquez "Créer un projet" ou "Add project"
-3. Nom du projet : `senharvest-group` (ou votre choix)
-4. Activez Google Analytics (optionnel)
-5. Créez le projet
+Le site utilise actuellement des valeurs de démonstration pour Firebase. Pour une utilisation en production, vous devez configurer vos vraies clés Firebase.
 
-### **2. Configurer Firestore Database :**
-1. Dans le menu de gauche, cliquez "Firestore Database"
-2. Cliquez "Créer une base de données"
-3. Choisissez "Mode test" (pour commencer)
-4. Sélectionnez une région (ex: `us-central1`)
-5. Créez la base de données
+## 📋 Étapes de configuration
 
-### **3. Configurer l'authentification :**
-1. Dans le menu de gauche, cliquez "Authentication"
-2. Cliquez "Commencer"
-3. Allez dans l'onglet "Sign-in method"
-4. Activez "Email/Password"
-5. Sauvegardez
+### 1. Créer le fichier `.env`
 
-### **4. Obtenir les clés de configuration :**
-1. Dans le menu de gauche, cliquez sur l'icône ⚙️ "Paramètres du projet"
-2. Allez dans l'onglet "Général"
-3. Faites défiler vers le bas jusqu'à "Vos applications"
-4. Cliquez sur l'icône Web `</>`
-5. Nom de l'app : `SenHarvest Website`
-6. Activez "Firebase Hosting" (optionnel)
-7. Cliquez "Enregistrer l'application"
-8. **COPIEZ** les clés de configuration
+Créez un fichier `.env` à la racine du projet avec vos vraies clés Firebase :
 
-### **5. Mettre à jour le fichier de configuration :**
-Remplacez les valeurs dans `src/config/firebase.js` :
+```bash
+# Firebase Configuration
+REACT_APP_FIREBASE_API_KEY=your_real_api_key_here
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_PROJECT_ID=your_project_id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=123456789
+REACT_APP_FIREBASE_APP_ID=1:123456789:web:abcdef123456
 
-```javascript
-const firebaseConfig = {
-  apiKey: "VOTRE_API_KEY_ICI",
-  authDomain: "votre-projet.firebaseapp.com",
-  projectId: "votre-projet-id",
-  storageBucket: "votre-projet.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "votre-app-id"
-};
+# Firebase Functions Region
+REACT_APP_FIREBASE_REGION=us-central1
+
+# Cloud Functions Endpoint
+REACT_APP_CF_SENDCONTACT_URL=https://us-central1-your_project.cloudfunctions.net/sendContact
 ```
 
-### **6. Configurer les règles de sécurité Firestore :**
-Dans l'onglet "Règles" de Firestore, remplacez par :
+### 2. Où trouver vos clés Firebase
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Permettre la lecture et l'écriture pour tous les utilisateurs authentifiés
-    match /{document=**} {
-      allow read, write: if request.auth != null;
-    }
-    
-    // Ou pour un accès public (moins sécurisé mais plus simple)
-    match /{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
+1. Allez sur [Firebase Console](https://console.firebase.google.com/)
+2. Sélectionnez votre projet
+3. Cliquez sur l'icône ⚙️ (Settings) → Project settings
+4. Dans l'onglet "General", trouvez la section "Your apps"
+5. Copiez les valeurs de configuration
+
+### 3. Redémarrer le serveur
+
+Après avoir créé le fichier `.env` :
+
+```bash
+npm start
 ```
 
-## 🚀 **Fonctionnalités disponibles :**
+## 🧪 Test de connexion
 
-### **✅ Synchronisation automatique :**
-- Toutes les données sont sauvegardées en temps réel
-- Accessible depuis n'importe quel appareil
-- Synchronisation automatique entre tous vos appareils
+Une fois configuré, testez Firebase dans la console du navigateur :
 
-### **✅ Collections Firebase :**
-- `proforma` - Toutes vos factures proforma
-- `sourcing_suppliers` - Fournisseurs
-- `sourcing_buyers` - Acheteurs  
-- `sourcing_products` - Produits
-- `product_references` - Références produits
-
-### **✅ Sauvegarde automatique :**
-- Chaque modification est sauvegardée automatiquement
-- Pas besoin de cliquer "Sauvegarder"
-- Données toujours à jour
-
-## 🔒 **Sécurité :**
-
-### **Option 1 : Accès public (simple)**
 ```javascript
-allow read, write: if true;
+testFirebase()
 ```
 
-### **Option 2 : Authentification requise (recommandé)**
-```javascript
-allow read, write: if request.auth != null;
-```
+## 🚨 Mode démonstration actuel
 
-## 📱 **Test de la synchronisation :**
+En attendant la configuration, le site fonctionne en mode démonstration avec :
+- ✅ Interface utilisateur complète
+- ✅ Navigation et pages
+- ⚠️ Firebase en mode démonstration (pas de vraie base de données)
+- ⚠️ Authentification limitée
 
-1. Ouvrez le site sur votre ordinateur
-2. Ajoutez un fournisseur
-3. Ouvrez le site sur votre téléphone
-4. Le fournisseur apparaît automatiquement ! 🎉
+## 📞 Support
 
-## 💰 **Coûts :**
-- **Gratuit** jusqu'à 1GB de données
-- **Gratuit** jusqu'à 50,000 lectures/écritures par jour
-- Plus que suffisant pour votre usage !
-
-## 🆘 **En cas de problème :**
-1. Vérifiez que les clés Firebase sont correctes
-2. Vérifiez que Firestore est activé
-3. Vérifiez les règles de sécurité
-4. Consultez la console du navigateur pour les erreurs
-
----
-
-**🎯 Une fois configuré, toutes vos données seront synchronisées automatiquement entre tous vos appareils !**
+Si vous avez besoin d'aide pour configurer Firebase, contactez votre développeur.
