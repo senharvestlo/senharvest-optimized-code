@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { downloadCleanPDF } from '../../../utils/html2pdfSafe';
 import { createNCNDA, getNCNDA, updateNCNDA } from '../../../services/ncnda';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+// Auth simplifié sans Firebase
 
 // ---------- textes FR/EN (clauses ICC "NCNDA" standards light) ----------
 const TEXTS = {
@@ -149,7 +149,10 @@ export default function NCNDAEditor() {
   const isNew = !id || id === 'new'; // Si pas d'ID ou "new", c'est un nouveau document
   const nav = useNavigate();
   const location = useLocation();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  // Auth simplifié - toujours accessible
+  const user = { email: 'admin@demo.com' };
+  const isAdmin = true;
+  const authLoading = false;
   const [lang, setLang] = useState('fr');
   const T = useMemo(() => TEXTS[lang], [lang]);
 

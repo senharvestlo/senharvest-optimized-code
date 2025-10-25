@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { COMPANY } from '../../config/company';
 import { Container } from '../ui';
 import FooterAdminTrigger from './FooterAdminTrigger';
-import AdminLoginModal from '../pages/admin/AdminLoginModal';
+// AdminLoginModal supprimé - Firebase retiré
 
 /**
  * Footer Component
@@ -85,7 +85,7 @@ function Footer({ t, lang, setPage }) {
         </div>
         
       </Container>
-      {openLogin && <AdminLoginModal onClose={() => setOpenLogin(false)} />}
+      {/* AdminLoginModal supprimé - Firebase retiré */}
     </footer>
   );
 }

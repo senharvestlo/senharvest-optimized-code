@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { downloadCleanPDF } from '../../../utils/html2pdfSafe';
 import { createPSA, getPSA, updatePSA } from '../../../services/psa';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+// Auth simplifié sans Firebase
 
 const TEXTS = {
   fr: {
@@ -136,7 +136,10 @@ export default function PSAEditor() {
   const isNew = !id || id === 'new';    // Si pas d'ID ou "new", c'est un nouveau document
   const nav = useNavigate();
   const location = useLocation();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  // Auth simplifié - toujours accessible
+  const user = { email: 'admin@demo.com' };
+  const isAdmin = true;
+  const authLoading = false;
 
   // Debug: afficher l'ID et le mode
   console.log('PSAEditor - ID:', id, 'isNew:', isNew);

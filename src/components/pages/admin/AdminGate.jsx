@@ -1,9 +1,5 @@
-import { useAuth } from '../../../context/AuthContext';
-import AdminLoginModal from './AdminLoginModal';
-
+// AdminGate simplifié sans Firebase
 export default function AdminGate({ children }) {
-  const { user, isAdmin, loading } = useAuth();
-  if (loading) return <div className="p-6">Chargement…</div>;
-  if (!user || !isAdmin) return <AdminLoginModal />;
+  // Admin toujours accessible sans Firebase
   return children;
 }
