@@ -136,7 +136,7 @@ export default function NCNDALite() {
         </div>
 
         <div className="text-xs text-gray-600 mt-10 pt-6 border-t">
-          <p><strong>ICC</strong>: iccwbo.org — {lang==='fr'?'En cas de conflit, l'anglais prévaut.':'In case of conflict, English prevails.'}</p>
+          <p><strong>ICC</strong>: iccwbo.org — {lang==='fr'?'En cas de conflit, l\'anglais prévaut.':'In case of conflict, English prevails.'}</p>
         </div>
       </div>
 
