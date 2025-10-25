@@ -1,0 +1,3 @@
+/*
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  # IMPORTANT : ne pas mettre de Cross-Origin-Embedder-Policy ici

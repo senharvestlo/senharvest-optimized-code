@@ -1,66 +1,90 @@
-// src/components/pages/admin/AdminLoginModal.jsx
-import React, { useState, useEffect } from 'react';
-import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import React, { useEffect, useState } from 'react';
 import { auth, googleProvider } from '../../../config/firebase';
+import {
+  signInWithPopup, signInWithRedirect, getRedirectResult,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword
+} from 'firebase/auth';
 
-export default function AdminLoginModal({ onClose }) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+export default function AdminLoginModal() {
+  const [email, setEmail] = useState('');
+  const [pass, setPass] = useState('');
+  const [err, setErr] = useState('');
 
-  // Gérer le résultat de redirection au montage du composant
   useEffect(() => {
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        console.log('✅ Redirection Google Auth réussie');
-        onClose(); // Fermer le modal si connexion réussie
-      }
-    }).catch((error) => {
-      console.log('ℹ️ Pas de résultat de redirection ou erreur:', error.message);
-    });
-  }, [onClose]);
+    getRedirectResult(auth).catch(() => {});
+  }, []);
 
   async function loginGoogle() {
-    setLoading(true);
-    setError('');
+    setErr('');
     try {
-      // Utiliser directement signInWithRedirect pour éviter les problèmes COOP
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithPopup(auth, googleProvider);
     } catch (e) {
-      console.error('Erreur de connexion Google:', e);
-      setError('Erreur de connexion Google. Essayez de rafraîchir la page.');
-      setLoading(false);
+      // COOP/popup blocked → fallback
+      try {
+        await signInWithRedirect(auth, googleProvider);
+      } catch (e2) {
+        setErr(e2.message || 'Google Sign-in failed');
+      }
+    }
+  }
+
+  async function loginEmail() {
+    setErr('');
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+      setErr(e.message || 'Email login failed');
+    }
+  }
+
+  // Optionnel: création manuelle (à n'exposer qu'en dev)
+  async function registerEmail() {
+    setErr('');
+    try {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } catch (e) {
+      setErr(e.message || 'Registration failed');
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold mb-4">Connexion Admin</h2>
-        
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+    <div className="max-w-md mx-auto bg-white border rounded p-4">
+      <h2 className="text-lg font-semibold mb-3">Connexion Admin</h2>
 
-        <button
-          onClick={loginGoogle}
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Redirection...' : 'Se connecter avec Google'}
-        </button>
-        
-        <p className="text-sm text-gray-600 mt-2 text-center">
-          Vous allez être redirigé vers Google pour la connexion
-        </p>
+      {err && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3">{err}</div>}
 
-        <button
-          onClick={onClose}
-          className="w-full mt-2 bg-gray-300 text-gray-700 py-2 px-4 rounded hover:bg-gray-400"
-        >
-          Annuler
-        </button>
+      <button
+        onClick={loginGoogle}
+        className="w-full bg-blue-600 text-white rounded px-3 py-2 mb-3"
+      >
+        Continuer avec Google
+      </button>
+
+      <div className="text-gray-500 text-center my-2">— ou —</div>
+
+      <div className="space-y-2">
+        <input
+          value={email}
+          onChange={e=>setEmail(e.target.value)}
+          type="email"
+          placeholder="Email"
+          className="w-full border rounded px-3 py-2"
+        />
+        <input
+          value={pass}
+          onChange={e=>setPass(e.target.value)}
+          type="password"
+          placeholder="Mot de passe"
+          className="w-full border rounded px-3 py-2"
+        />
+        <div className="flex gap-2">
+          <button onClick={loginEmail} className="flex-1 border rounded px-3 py-2">
+            Se connecter
+          </button>
+          <button onClick={registerEmail} className="flex-1 border rounded px-3 py-2">
+            Créer (dev)
+          </button>
+        </div>
       </div>
     </div>
   );

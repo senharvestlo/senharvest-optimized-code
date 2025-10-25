@@ -1,9 +1,7 @@
-// src/services/psa.js
-import {
-  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  doc, collection, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
 import { getDb } from '../config/firebase';
+import {
+  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
+} from 'firebase/firestore';
 
 const KIND = 'psa';
 
@@ -35,3 +33,10 @@ export async function deletePSA(id) {
   const db = getDb();
   await deleteDoc(doc(db, KIND, id));
 }
+
+// Compat
+export const savePSA = async (id, data) => {
+  if (!id) return createPSA(data);
+  await updatePSA(id, data);
+  return { id };
+};

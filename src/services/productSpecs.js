@@ -1,9 +1,7 @@
-// src/services/productSpecs.js
-import {
-  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  doc, collection, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
 import { getDb } from '../config/firebase';
+import {
+  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
+} from 'firebase/firestore';
 
 const KIND = 'productSpecs';
 
@@ -52,3 +50,10 @@ export async function deleteSpec(id) {
   const db = getDb();
   await deleteDoc(doc(db, KIND, id));
 }
+
+// Compat
+export const saveSpec = async (id, data) => {
+  if (!id) return createSpec(data);
+  await updateSpec(id, data);
+  return { id };
+};

@@ -1,51 +1,45 @@
-// src/services/firestoreDocs.js
-import {
-  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  doc, collection, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
 import { getDb } from '../config/firebase';
+import {
+  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp
+} from 'firebase/firestore';
 
-export async function createDoc(kind, data) {
+export async function listDocs(type) {
   const db = getDb();
-  const col = collection(db, kind);
-  const payload = {
-    ...data,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
-  const ref = await addDoc(col, payload);
-  return { id: ref.id, ...payload };
+  const snap = await getDocs(collection(db, `docs_${type}`));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-export async function updateDocById(kind, id, data) {
+export async function getDocById(type, id) {
   const db = getDb();
-  const ref = doc(db, kind, id);
-  const payload = { ...data, updatedAt: serverTimestamp() };
-  await updateDoc(ref, payload);
-  return { id, ...payload };
-}
-
-export async function getDocById(kind, id) {
-  const db = getDb();
-  const ref = doc(db, kind, id);
+  const ref = doc(db, `docs_${type}`, id);
   const snap = await getDoc(ref);
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-export async function deleteDocById(kind, id) {
+export async function createDoc(type, data) {
   const db = getDb();
-  await deleteDoc(doc(db, kind, id));
+  const ref = await addDoc(collection(db, `docs_${type}`), {
+    ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+  });
+  return { id: ref.id };
 }
 
-export async function listDocs(kind, { order='updatedAt', desc=true, max=100 } = {}) {
+export async function updateDocById(type, id, data) {
   const db = getDb();
-  const q = query(collection(db, kind), orderBy(order, desc ? 'desc' : 'asc'), limit(max));
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  await updateDoc(doc(db, `docs_${type}`, id), { ...data, updatedAt: serverTimestamp() });
 }
 
-// compat pour ton code existant
-export async function saveDoc(kind, id, data) {
-  if (!id) return createDoc(kind, data);
-  return updateDocById(kind, id, data);
+export async function deleteDocById(type, id) {
+  const db = getDb();
+  await deleteDoc(doc(db, `docs_${type}`, id));
+}
+
+// Compat (là où ton code appelait "saveDoc")
+export async function saveDoc(type, id, data) {
+  if (!id) {
+    const res = await createDoc(type, data);
+    return res;
+  }
+  await updateDocById(type, id, data);
+  return { id };
 }

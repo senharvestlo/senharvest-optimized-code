@@ -1,47 +1,48 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../config/firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut, getIdTokenResult } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { auth, onAuth } from '../config/firebase';
+import { getIdTokenResult } from 'firebase/auth';
 
-const Ctx = createContext(null);
-export const useAuth = () => useContext(Ctx);
+const AdminAllowlist = [
+  'manager@senharvest.com',
+  'inquiry@senharvest.com',
+  // ajoute d'autres emails admin ici si besoin
+];
 
-export function AuthProvider({ children }) {
+const AuthCtx = createContext({
+  user: null,
+  loading: true,
+  isAdmin: false,
+});
+
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [claims, setClaims] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const refreshClaims = async (u) => {
-    const cu = u || auth?.currentUser;
-    if (!cu) { setClaims({}); return; }
-    const idt = await getIdTokenResult(cu, true);
-    setClaims(idt.claims || {});
-  };
-
   useEffect(() => {
-    if (!auth) { setLoading(false); return; }
-    const unsub = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      await refreshClaims(u);
+    return onAuth(async (u) => {
+      setUser(u || null);
+      if (u) {
+        try {
+          const token = await getIdTokenResult(u, true);
+          const byClaim = !!token.claims?.admin;
+          const byAllow = AdminAllowlist.includes((u.email || '').toLowerCase());
+          setIsAdmin(byClaim || byAllow);
+        } catch {
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
-    return unsub;
   }, []);
 
-  const login = async (email, pass) => { if (!auth) return; await signInWithEmailAndPassword(auth, email, pass); await refreshClaims(); };
-  const logout = async () => { if (!auth) return; await signOut(auth); setClaims({}); };
-  const requestAdmin = async () => {
-    const f = getFunctions();
-    const grantAdmin = httpsCallable(f, 'grantAdmin');
-    await grantAdmin();
-    await refreshClaims();
-  };
-
   return (
-    <Ctx.Provider value={{ user, isAdmin: claims.admin === true, login, logout, requestAdmin, loading }}>
+    <AuthCtx.Provider value={{ user, loading, isAdmin }}>
       {children}
-    </Ctx.Provider>
+    </AuthCtx.Provider>
   );
-}
+};
 
-
+export const useAuth = () => useContext(AuthCtx);

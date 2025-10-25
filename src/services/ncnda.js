@@ -1,9 +1,7 @@
-// src/services/ncnda.js
-import {
-  addDoc, updateDoc, getDoc, getDocs, deleteDoc,
-  doc, collection, serverTimestamp, query, orderBy, limit
-} from 'firebase/firestore';
 import { getDb } from '../config/firebase';
+import {
+  collection, addDoc, getDoc, getDocs, doc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit
+} from 'firebase/firestore';
 
 const KIND = 'ncnda';
 
@@ -35,3 +33,10 @@ export async function deleteNCNDA(id) {
   const db = getDb();
   await deleteDoc(doc(db, KIND, id));
 }
+
+// Compat
+export const saveNCNDA = async (id, data) => {
+  if (!id) return createNCNDA(data);
+  await updateNCNDA(id, data);
+  return { id };
+};
