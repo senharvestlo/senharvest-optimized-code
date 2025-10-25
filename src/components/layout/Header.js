@@ -6,7 +6,7 @@ import { Container } from '../ui';
  * Header Component
  * Navigation header with logo and language toggle
  */
-function Header({ t, lang, setLang, page, setPage }) {
+function Header({ t, lang, setLang, page, setPage, onAdminAccess }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   
@@ -27,7 +27,9 @@ function Header({ t, lang, setLang, page, setPage }) {
   const handleLogoClick = () => {
     setClickCount(prev => prev + 1);
     if (clickCount >= 2) { // 3 clics (0, 1, 2)
-      setPage('admin');
+      if (onAdminAccess) {
+        onAdminAccess();
+      }
       setClickCount(0);
     }
     // Reset le compteur après 3 secondes
