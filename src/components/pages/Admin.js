@@ -191,7 +191,7 @@ const Admin = ({ onAccess }) => {
       await generateTradePDF(data);
 
       // Optionnel: upload + métadonnées (simplifié sans Firebase)
-      const { blob, filename } = await generateTradePDFBlob(data);
+      const { filename } = await generateTradePDFBlob(data);
       console.log('PDF generated:', filename);
       // Upload désactivé sans Firebase
 

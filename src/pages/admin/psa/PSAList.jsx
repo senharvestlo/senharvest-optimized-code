@@ -2,8 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { listPSA, deletePSA } from '../../../services/psa';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
-import { FIREBASE_READY, getDb } from '../../../config/firebase';
+// Auth simplifié sans Firebase
 
 function useDebouncedValue(value, delay = 300) {
   const [v, setV] = useState(value);
@@ -13,7 +12,10 @@ function useDebouncedValue(value, delay = 300) {
 
 export default function PSAList() {
   const nav = useNavigate();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  // Auth simplifié - toujours accessible
+  const user = { email: 'admin@demo.com' };
+  const isAdmin = true;
+  const authLoading = false;
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState('');
