@@ -33,7 +33,7 @@ export default function AdminLoginModal({ onClose, onSuccess }) {
               value={u}
               onChange={(e)=>setU(e.target.value)}
               className="w-full border rounded px-3 py-2"
-              placeholder="Senharvest"
+              placeholder="Nom d'utilisateur"
             />
           </div>
           <div>
@@ -43,7 +43,7 @@ export default function AdminLoginModal({ onClose, onSuccess }) {
               value={p}
               onChange={(e)=>setP(e.target.value)}
               className="w-full border rounded px-3 py-2"
-              placeholder="Xidma@0511"
+              placeholder="Mot de passe"
             />
           </div>
           {err && <div className="text-red-600 text-sm">{err}</div>}

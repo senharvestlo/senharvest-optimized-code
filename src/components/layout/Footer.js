@@ -56,7 +56,7 @@ function Footer({ t, lang, setPage }) {
               onClick={onLogoClick}
               className="w-10 h-10 flex items-center justify-center opacity-80 hover:opacity-100 transition"
             >
-              <img src="/logo192.png" alt="SenHarvest" className="h-8 w-auto" />
+              <img src="/Xidma Harvest Logo NB.png" alt="SenHarvest" className="h-8 w-auto" />
             </button>
             <button 
               onClick={handleFooterCompanyNameClick}
