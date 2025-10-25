@@ -32,7 +32,7 @@ export default function AdminLoginModal({ onClose, onSuccess }) {
             <input
               value={u}
               onChange={(e)=>setU(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-gray-900"
               placeholder="Nom d'utilisateur"
             />
           </div>
@@ -42,7 +42,7 @@ export default function AdminLoginModal({ onClose, onSuccess }) {
               type="password"
               value={p}
               onChange={(e)=>setP(e.target.value)}
-              className="w-full border rounded px-3 py-2"
+              className="w-full border rounded px-3 py-2 text-gray-900"
               placeholder="Mot de passe"
             />
           </div>
