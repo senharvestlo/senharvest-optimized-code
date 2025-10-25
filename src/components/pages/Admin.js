@@ -7,7 +7,7 @@ import AdminProductSpecs from '../AdminProductSpecs.jsx';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
-import { getStorageLazy } from '../../config/firebase';
+import { storage } from '../../config/firebase';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 // Removed saveTradeDocMeta import
 
@@ -198,7 +198,6 @@ const Admin = ({ onAccess }) => {
       // Optionnel: upload + métadonnées (l'utilisateur peut préférer download local uniquement)
       const { blob, filename } = await generateTradePDFBlob(data);
       const path = `pdfs/${filename}`;
-      const storage = getStorageLazy();
       const fileRef = storageRef(storage, path);
       await uploadBytes(fileRef, blob, { contentType: 'application/pdf' });
       const url = await getDownloadURL(fileRef);
