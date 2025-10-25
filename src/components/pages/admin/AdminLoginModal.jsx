@@ -48,42 +48,50 @@ export default function AdminLoginModal() {
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white border rounded p-4">
-      <h2 className="text-lg font-semibold mb-3">Connexion Admin</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+        <h2 className="text-xl font-bold mb-4 text-center">Connexion Admin</h2>
 
-      {err && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-3">{err}</div>}
+        {err && <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded mb-4">{err}</div>}
 
-      <button
-        onClick={loginGoogle}
-        className="w-full bg-blue-600 text-white rounded px-3 py-2 mb-3"
-      >
-        Continuer avec Google
-      </button>
+        <button
+          onClick={loginGoogle}
+          className="w-full bg-blue-600 text-white rounded px-4 py-3 mb-4 hover:bg-blue-700 transition-colors"
+        >
+          Continuer avec Google
+        </button>
 
-      <div className="text-gray-500 text-center my-2">— ou —</div>
+        <div className="text-gray-500 text-center my-3">— ou —</div>
 
-      <div className="space-y-2">
-        <input
-          value={email}
-          onChange={e=>setEmail(e.target.value)}
-          type="email"
-          placeholder="Email"
-          className="w-full border rounded px-3 py-2"
-        />
-        <input
-          value={pass}
-          onChange={e=>setPass(e.target.value)}
-          type="password"
-          placeholder="Mot de passe"
-          className="w-full border rounded px-3 py-2"
-        />
-        <div className="flex gap-2">
-          <button onClick={loginEmail} className="flex-1 border rounded px-3 py-2">
-            Se connecter
-          </button>
-          <button onClick={registerEmail} className="flex-1 border rounded px-3 py-2">
-            Créer (dev)
-          </button>
+        <div className="space-y-3">
+          <input
+            value={email}
+            onChange={e=>setEmail(e.target.value)}
+            type="email"
+            placeholder="Email"
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <input
+            value={pass}
+            onChange={e=>setPass(e.target.value)}
+            type="password"
+            placeholder="Mot de passe"
+            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div className="flex gap-2">
+            <button 
+              onClick={loginEmail} 
+              className="flex-1 bg-gray-600 text-white rounded px-3 py-2 hover:bg-gray-700 transition-colors"
+            >
+              Se connecter
+            </button>
+            <button 
+              onClick={registerEmail} 
+              className="flex-1 border border-gray-300 rounded px-3 py-2 hover:bg-gray-50 transition-colors"
+            >
+              Créer (dev)
+            </button>
+          </div>
         </div>
       </div>
     </div>

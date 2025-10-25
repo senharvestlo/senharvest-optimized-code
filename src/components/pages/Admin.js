@@ -240,11 +240,7 @@ const Admin = ({ onAccess }) => {
 
   // Si l'utilisateur n'est pas connecté ou n'est pas admin, afficher le modal de connexion
   if (!user || !isAdmin) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
-        <AdminLoginModal />
-      </div>
-    );
+    return <AdminLoginModal />;
   }
 
   if (!isAuthenticated) {
