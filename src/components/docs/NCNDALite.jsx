@@ -53,7 +53,7 @@ export default function NCNDALite() {
           <label className="text-sm">{lang==='fr'?'Durée (années)':'Duration (years)'}
             <input type="number" min="1" className="mt-1 w-full border rounded px-2 py-1" value={years} onChange={e=>setYears(+e.target.value||1)} />
           </label>
-          <label className="text-sm">{lang==='fr'?'Date d'émission':'Date issued'}
+          <label className="text-sm">{lang==='fr'?'Date d\'émission':'Date issued'}
             <input type="date" className="mt-1 w-full border rounded px-2 py-1" value={date} onChange={e=>setDate(e.target.value)} />
           </label>
           <label className="text-sm">Scope
