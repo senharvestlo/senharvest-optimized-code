@@ -45,3 +45,31 @@
     letter-spacing: 0.01em;
   }
 }
+
+/* === QWEN PDF SYSTEM === */
+/* Filigrane */
+.watermark { position: absolute; inset: 0; pointer-events:none; }
+.watermark-inner {
+  position: absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%) rotate(-18deg);
+  font-size: 80px; font-weight: 800; letter-spacing: 6px;
+  color: rgba(0,0,0,0.06); white-space: nowrap;
+}
+
+/* Preview fit ≤ 2 pages */
+.pdf-shell { position: relative; }
+.pdf-fit-wrap { transform-origin: top left; }
+.pdf-outline { outline: 1px dashed #e5e7eb; }
+
+/* utils petites classes */
+.h1{font-size:1.5rem;font-weight:700}
+.h2{font-size:1rem;font-weight:600}
+.small{font-size:.9rem}
+.badge{display:inline-block;padding:.25rem .5rem;border:1px solid #e5e7eb;border-radius:.25rem;font-size:.75rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.section{border:1px solid #e5e7eb;border-radius:.5rem;padding:.75rem}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid #e5e7eb;padding:.5rem;vertical-align:top}
+.header{display:flex;justify-content:space-between;align-items:flex-start}
+.logo{height:56px}
