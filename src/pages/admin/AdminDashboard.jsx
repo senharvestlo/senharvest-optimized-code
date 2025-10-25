@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import ProformaHTML from '../../components/docs/ProformaHTML';
+import QuotationHTML from '../../components/docs/QuotationHTML';
 import NCNDALite from '../../components/docs/NCNDALite';
-import ProformaLite from '../../components/docs/ProformaLite';
-import QuotationLite from '../../components/docs/QuotationLite';
 import AdminProductSpecs from '../../components/admin/AdminProductSpecs';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const { isAdmin, logout } = useAuth();
-  const [tab, setTab] = useState('proforma'); // 'proforma' | 'quotation' | 'ncnda' | 'specs'
+  const [tab, setTab] = useState('proforma');
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   if (!isAdmin) {
     return (
@@ -27,7 +34,7 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b flex items-center justify-between">
             <h1 className="text-2xl font-bold">Administration</h1>
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="text-sm px-3 py-2 rounded border hover:bg-gray-50"
             >
               Déconnexion
@@ -55,8 +62,8 @@ export default function AdminDashboard() {
           </div>
 
           <div className="p-6">
-            {tab==='proforma'  && <ProformaLite />}
-            {tab==='quotation' && <QuotationLite />}
+            {tab==='proforma'  && <ProformaHTML />}
+            {tab==='quotation' && <QuotationHTML />}
             {tab==='ncnda'     && <NCNDALite />}
             {tab==='specs'     && <AdminProductSpecs />}
           </div>
