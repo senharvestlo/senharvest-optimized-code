@@ -1,503 +1,236 @@
 // src/pages/admin/ncnda/NCNDAEditor.jsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { downloadCleanPDF } from '../../../utils/html2pdfSafe';
-import { createNCNDA, getNCNDA, updateNCNDA } from '../../../services/ncnda';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
-// Auth simplifié sans Firebase
+import React, { useMemo, useRef, useState } from 'react';
+import html2pdf from 'html2pdf.js';
 
-// ---------- textes FR/EN (clauses ICC "NCNDA" standards light) ----------
-const TEXTS = {
-  fr: {
-    title: 'ACCORD DE NON-CONTREFAÇON, NON-DIVULGATION ET COLLABORATION (NCNDA)',
-    subtitle: "Rédigé conformément aux standards de la Chambre de Commerce Internationale (ICC)",
-    edtTitle: 'TRANSFERTS ÉLECTRONIQUES DE DOCUMENTS (EDT)',
-    edtBody:
-      "Les transmissions électroniques sont réputées valides. Le présent accord incorpore la Loi US 106-229, la Loi Modèle CNUDCI, et l'accord UN/CEFACT sur le e-commerce. Chaque Partie peut demander une copie papier sans retarder l'exécution.",
-    partiesTitle: 'PARTIES À CET ACCORD',
-    p1: 'Partie 1 : Intermédiaire / Broker',
-    p2: 'Partie 2 : Vendeur / Exportateur',
-    p3: 'Partie 3 : Acheteur / Importateur',
-    fullName: 'Nom/Intitulé',
-    corp: 'Société',
-    addr: 'Adresse',
-    tel: 'Téléphone',
-    email: 'Email',
-    sigBroker: 'Signature – Intermédiaire',
-    sigSeller: 'Signature – Vendeur',
-    sigBuyer: 'Signature – Acheteur',
-    date: 'Date',
-    clausesIntro:
-      "Considérant la volonté des Parties de définir leurs obligations respectives et de protéger leurs intérêts commerciaux, elles conviennent de ce qui suit :",
-    clauses: [
-      "Aucune Partie ni affiliée ne sollicitera ni ne traitera directement avec une source présentée par l'autre Partie sans autorisation écrite expresse.",
-      "Les Parties maintiendront une confidentialité complète sur les informations d'affaires et contacts fournis.",
-      "Aucune Partie ne contournnera l'autre, directement ou indirectement, notamment pour éviter le paiement de commissions.",
-      "Les contacts communiqués par l'une des Parties ne seront pas transmis à des tiers sans accord préalable.",
-      "En cas de contournement, la Partie lésée a droit à une compensation intégrale incluant les frais juridiques.",
-      "Les commissions et bénéfices seront répartis conformément à la section Commission ci-après ou selon tout avenant signé.",
-      "Le présent Accord est valable pour {YEARS} ans à compter de la dernière signature.",
-      "Tout litige sera résolu par arbitrage selon les règles de la CCI. Le droit applicable et le siège d'arbitrage seront déterminés d'un commun accord.",
-      "Le présent Accord lie les héritiers, successeurs et ayants-droit des Parties.",
-      "La signature électronique a pleine valeur légale.",
-      "En cas de contradiction, la version anglaise prévaut.",
-    ],
-    commissionTitle: 'COMMISSION DE L\'INTERMÉDIAIRE',
-    commissionBody:
-      "L\'Intermédiaire (SenHarvest Group) perçoit une commission de {FEE}% sur la valeur FOB/CIF de chaque transaction réalisée entre le Vendeur et l\'Acheteur pour les Produits couverts pendant la Durée du Contrat. La commission est due et exigible à chaque closing (paiement effectif), et couvre toute répétition de transaction entre les mêmes Parties durant la période de validité du présent Accord.",
-    scopeTitle: 'PRODUITS ET CHAMP D\'APPLICATION',
-    scopeBody:
-      "Produits couverts : {PRODUCTS}. Incoterms et modalités (à titre indicatif) : {INCOTERMS}. Territoires et volumes selon opportunités et disponibilités.",
-    footer1: 'ICC : https://www.iccwbo.org | Incoterms : https://iccwbo.org/incoterms',
-    footer2: "Ce document peut être signé électroniquement. En cas de conflit, l'anglais prévaut.",
-    ui: {
-      lang: 'Langue',
-      years: 'Durée (années)',
-      fee: 'Commission (%)',
-      products: 'Produits couverts',
-      incoterms: 'Incoterms / modalités',
-      meta: 'Référence & Date',
-      ref: 'Référence',
-      dateIssued: 'Date d\'émission',
-      brokerBlock: 'Bloc Intermédiaire (SenHarvest)',
-      sellerBlock: 'Bloc Vendeur',
-      buyerBlock: 'Bloc Acheteur',
-      nameTitle: 'Nom & Titre',
-      company: 'Société',
-      address: 'Adresse',
-      phone: 'Téléphone',
-      email: 'Email',
-      save: 'Enregistrer',
-          update: 'Enregistrer',
-      download: 'Télécharger en PDF',
-    }
-  },
-  en: {
-    title: 'NON-CIRCUMVENTION, NON-DISCLOSURE & WORKING AGREEMENT (NCNDA)',
-    subtitle: "Prepared in accordance with ICC (International Chamber of Commerce) standards",
-    edtTitle: 'ELECTRONIC DOCUMENT TRANSMISSIONS (EDT)',
-    edtBody:
-      "Electronic transmissions shall be deemed valid. This agreement incorporates U.S. Public Law 106-229, UNCITRAL Model Law, and UN/CEFACT E-Commerce Agreement. Any Party may request a hard copy without delaying performance.",
-    partiesTitle: 'PARTIES TO THIS AGREEMENT',
-    p1: 'Party 1: Intermediary / Broker',
-    p2: 'Party 2: Seller / Exporter',
-    p3: 'Party 3: Buyer / Importer',
-    fullName: 'Full Name/Title',
-    corp: 'Corporation',
-    addr: 'Address',
-    tel: 'Tel',
-    email: 'Email Address',
-    sigBroker: 'Authorized Signature – Broker',
-    sigSeller: 'Authorized Signature – Seller',
-    sigBuyer: 'Authorized Signature – Buyer',
-    date: 'Date',
-    clausesIntro:
-      "Whereas the Parties intend to protect their respective business interests, they agree as follows:",
-    clauses: [
-      "No Party nor any affiliate shall solicit or conduct business directly with sources presented by the other Party without prior written authorization.",
-      "The Parties shall maintain strict confidentiality over business information and contacts disclosed.",
-      "No Party shall circumvent the other, directly or indirectly, including with the intent to avoid commission payment.",
-      "Contacts disclosed by either Party shall not be revealed to third parties without prior consent.",
-      "In case of circumvention, the injured Party is entitled to full compensation including legal fees.",
-      "Commissions and benefits shall be distributed in accordance with the Commission section below or any duly signed addendum.",
-      "This Agreement shall remain valid for {YEARS} years from the last signature date.",
-      "Any dispute shall be settled by arbitration under ICC rules. Governing law and seat of arbitration shall be mutually agreed.",
-      "This Agreement is binding upon heirs, successors, and assigns.",
-      "Electronic signature has full legal force.",
-      "In case of conflict, the English version prevails.",
-    ],
-    commissionTitle: 'BROKER COMMISSION',
-    commissionBody:
-      "The Intermediary (SenHarvest Group) shall receive a commission of {FEE}% on the FOB/CIF value of each transaction concluded between Seller and Buyer for the Covered Products during the Contract Term. The commission is due at each closing (effective payment) and covers any repeat transactions between the same Parties during the validity period.",
-    scopeTitle: 'PRODUCTS & SCOPE',
-    scopeBody:
-      "Covered products: {PRODUCTS}. Incoterms & modalities (indicative): {INCOTERMS}. Territories and volumes subject to opportunities and availability.",
-    footer1: 'ICC: https://www.iccwbo.org | Incoterms: https://iccwbo.org/incoterms',
-    footer2: "This document may be executed electronically. In case of conflict, English prevails.",
-    ui: {
-      lang: 'Language',
-      years: 'Duration (years)',
-      fee: 'Commission (%)',
-      products: 'Covered Products',
-      incoterms: 'Incoterms / modalities',
-      meta: 'Reference & Date',
-      ref: 'Reference',
-      dateIssued: 'Date issued',
-      brokerBlock: 'Broker Block (SenHarvest)',
-      sellerBlock: 'Seller Block',
-      buyerBlock: 'Buyer Block',
-      nameTitle: 'Name & Title',
-      company: 'Company',
-      address: 'Address',
-      phone: 'Phone',
-      email: 'Email',
-      save: 'Save',
-          update: 'Save',
-      download: 'Download PDF',
-    }
-  }
+// ======= Texte ICC (Anglais, clauses intégrales fournies) =======
+const ICC_NCNDA = {
+  headerTitle: 'NON-CIRCUMVENTION, NON-DISCLOSURE AND WORKING AGREEMENT',
+  preface: (dateStr) =>
+    `Whereas the Undersigned Parties wish to enter into this Agreement on ${dateStr} to define certain parameters of their future legal obligations, and considering their mutual promise herein and other good and valuable considerations the receipt of which is acknowledged hereby, the Parties hereto mutually and voluntarily agree as follows:`,
+
+  clauses: [
+    `1.
+The parties hereto and/or their affiliates, which includes, but is not limited to, any licensors, contractors, buyer's appointed consignee(s), suppliers, manufacturers, producers, wholesalers, retailers, customers, clients, financial sources, representatives, agents or consultants, of what-so-ever nature shall not, in any manner solicit and/or accept any business from sources that have been made available through the parties hereto, nor in any manner shall access, contact solicit and/or conduct any transaction with such said sources, without the expressed and specific permission of the party who made such said sources available.`,
+
+    `2.
+The Parties shall maintain complete confidentiality regarding each other's business and/or their affiliates and shall only disclose knowledge pertaining to these specifically named Parties as permitted by the concerned Party, unless agreed and granted an expressed written permission of and by the Party whom made the source available.`,
+
+    `3.
+The Parties shall not in any way whatsoever circumvent each other and/or attempt such circumvention of each other and/or any of the parties involved in any of the transactions the Parties wish to enter and to the best of their abilities shall ensure that the original transaction codes, data and proprietary information established are not altered.`,
+
+    `4.
+The Parties shall not disclose any contact revealed by either Party to any third Parties as they fully recognized such information and contact(s) of the respective Party, and shall not enter into direct and/or indirect offers, negotiations and/or transaction with such contacts revealed by the other Party who made the contact(s) available.`,
+
+    `5.
+In the event of circumvention by any of the undersigned Parties, whether direct and/or indirect, the circumvented Party shall be entitled to a legal monetary compensation equal to the maximum service it should realize from such a transaction, plus any and all expenses, including any and all legal fees incurred in lieu of the recovery of such compensation.`,
+
+    `6.
+All considerations, benefits, bonuses, participation, fees, and/or commissions received as a result of the contributions of the Parties to this agreement, relating to any and all transaction shall be allocated as mutually agreed. Specific arrangements, fee for each transaction shall be made available and/or submitted to the recipient on the very day due and payable as per each and every transaction, unless otherwise agreed.`,
+
+    `7.
+This agreement is valid for Three (3) year from the date upon date of signature, for any and all transactions between the Parties therein, with renewal to be agreed upon between the signatories.`,
+
+    `8.
+It is further agreed that any controversy, claims, and or dispute arising out of and/or relating to any part of the whole of this agreement or breach thereof and which is not settled between the signatories themselves, shall be settled and binding by and through arbitration in accordance with the rules and through the institution of the International Chamber of Commerce. Any decision and/or award made by the arbitrators shall be final, conclusive and binding for the Parties and enforceable in the Court of Law in the Country of choice of an award by the arbitrators.`,
+
+    `9.
+This Agreement shall be binding upon the Parties hereto and in the case of individual parties, their respective heirs, administrators and executors and in the case of all corporate Parties, their successors and assigns
+a. The non-circumvention damages, i.e., the total commissions, fees, or profits which would have been due, and;
+b. All loss sustained by the non-defaulting party by reason of such breach, and;
+c. All expenses incurred in enforcing any legal remedy rights based upon or arising out of this Agreement.`,
+
+    `10.
+Signature of this agreement shall be deemed to be an executed agreement enforceable and admissible for all purposes as may be necessary under the terms of this agreement.`,
+
+    `11.
+All signatories hereto acknowledge that they have read and each Party fully understands the terms and conditions contained in this Agreement and by their initials and signature hereby unconditionally agree to its terms as of the date noted herein.`,
+
+    `12.
+The purpose of this instrument is to establish an internationally recognized Non-Circumvention, Non-Disclosure, and Working Agreement between the participating Parties. This and future transactions shall be conducted under the guidelines of the International Chamber of Commerce.`,
+  ],
+
+  edtTitle: 'EDT (Electronic document transmissions)',
+  edtBody: `EDT (Electronic document transmissions) shall be deemed valid and enforceable in respect of any provisions of this Contract. As applicable, this agreement shall be:
+1 Incorporate U.S. Public Law 106-229, "Electronic Signatures in Global and National Commerce Act" such other applicable law conforming to the UNCITRAL Model Law on Electronic Signatures (2001) and
+2 ELECTRONIC COMMERCE AGREEMENT (ECE/TRADE/257, Geneva, May 2000) adopted by the United Nations Centre for Trade Facilitation and Electronic Business (UN/CEFACT).
+3 EDT documents shall be subject to European Community Directive No. 95/46/EC, as applicable. Either Party may request hard copy of any document that has been previously transmitted by electronic means provided however, that any such request shall in no manner delay the parties from performing their respective obligations and duties under EDT instruments.`,
+
+  footer: `This agreement may be signed in one or more counterparts and the Parties agree that electronic or facsimile copies of this Agreement to be considered as a legal original and signatures thereon shall be legal and binding. If any dispute between the language, abide by the English.
+ICC (INTERNATIONAL CHAMBER OF COMMERCE) – http://www.iccwbo.org/index.asp
+INCOTERMS 2010 – INCOTERMS ARE STANDARD TRADE DEFINITIONS MOST COMMONLY USED IN INTERNATIONAL SALES CONTRACTS: http://www.iccwbo.org/incoterms/understanding.asp`,
 };
 
-// ---------- helpers ----------
-const fmtDate = (d) => new Date(d || Date.now()).toLocaleDateString();
-
-// Remplace {YEARS}/{FEE}/{PRODUCTS}/{INCOTERMS} dans un texte
-const inject = (s, map) =>
-  s.replace(/\{(\w+)\}/g, (_, k) => (map[k] != null ? String(map[k]) : ''));
+const fmtDate = (iso) =>
+  new Date(iso || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 
 export default function NCNDAEditor() {
-  const { id } = useParams(); // 'new' ou docId Firestore
-  const isNew = !id || id === 'new'; // Si pas d'ID ou "new", c'est un nouveau document
-  const nav = useNavigate();
-  const location = useLocation();
-  // Auth simplifié - toujours accessible
-  const user = { email: 'admin@demo.com' };
-  const isAdmin = true;
-  const authLoading = false;
-  const [lang, setLang] = useState('fr');
-  const T = useMemo(() => TEXTS[lang], [lang]);
-
-  // Debug: afficher l'ID et le mode
-  console.log('NCNDAEditor - ID:', id, 'isNew:', isNew);
-
   const [form, setForm] = useState({
     ref: '',
     dateIssued: new Date().toISOString(),
-    years: 3,
-    feePct: 3,
-    products: 'Raw Cashew Nuts, Sesame Seeds…',
-    incoterms: 'FOB/CIF',
-    broker: {
-      nameTitle: 'Mr. Abdou Lahat Lo / Manager',
-      company: 'SenHarvest Group',
-      address: 'Dakar, Sénégal / Montréal, Canada',
-      phone: '+1 819 319 8464',
-      email: 'manager@senharvest.com',
-    },
-    seller: { nameTitle: '', company: '', address: '', phone: '', email: '' },
-    buyer:  { nameTitle: '', company: '', address: '', phone: '', email: '' },
-    lang: 'fr',
+    party1: { nameTitle:'', company:'', address:'', phone:'', email:'' },
+    party2: { nameTitle:'', company:'', address:'', phone:'', email:'' },
   });
 
   const docRef = useRef(null);
-
-  useEffect(() => {
-    (async () => {
-      if (!isNew && id) {
-        const row = await getNCNDA(id);
-        if (row) {
-          setForm({ ...row });
-          if (row.lang) setLang(row.lang);
-        }
-      }
-    })();
-  }, [id, isNew]);
-
-  // Gestion de la duplication (preset)
-  useEffect(() => {
-    if (isNew && location.state?.preset) {
-      const { id: _drop, createdAt: __c, updatedAt: __u, ...copy } = location.state.preset || {};
-      // Reset de la ref et dates
-      copy.ref = (copy.ref || 'NCNDA-') + '-COPY';
-      copy.dateIssued = new Date().toISOString();
-      setForm(prev => ({ ...prev, ...copy, lang: copy.lang || prev.lang }));
-      setLang(copy.lang || 'fr');
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNew]);
+  const dateStr = useMemo(() => fmtDate(form.dateIssued), [form.dateIssued]);
 
   const onChange = (path, val) => {
     setForm((f) => {
-      const clone = { ...f };
+      const c = { ...f };
       const segs = path.split('.');
-      let cur = clone;
+      let cur = c;
       for (let i = 0; i < segs.length - 1; i++) cur = cur[segs[i]];
       cur[segs.at(-1)] = val;
-      return clone;
+      return c;
     });
   };
 
-  const onSave = async () => {
-    try {
-      const payload = { ...form, lang };
-      console.log('onSave - payload:', payload, 'id:', id, 'isNew:', isNew);
-      
-      if (isNew) {
-        const newId = await createNCNDA(payload);
-        alert('NCNDA enregistré.');
-        nav(`/admin/ncnda/${newId}`);
-      } else {
-        if (!id || id === 'new') {
-          alert('Erreur: ID du document manquant. Redirection vers la création d\'un nouveau document.');
-          nav('/admin/ncnda/new');
-          return;
-        }
-        await updateNCNDA(id, payload);
-        alert('NCNDA mis à jour.');
-      }
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-      alert('Erreur lors de la sauvegarde: ' + error.message);
-    }
-  };
-
   const onDownload = async () => {
-    const node = document.getElementById('ncnda-document');
+    await new Promise((r) => setTimeout(r, 0));
+    const node = docRef.current;
     const filename = `NCNDA-${form.ref || new Date().toISOString().slice(0,10)}.pdf`;
-    await downloadCleanPDF(node, filename);
+    const opt = {
+      margin: 0.5,
+      filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all','css','legacy'] },
+    };
+    await html2pdf().set(opt).from(node).save();
   };
-
-  // Clauses dynamiques
-  const clauses = T.clauses.map(c =>
-    inject(c, {
-      YEARS: form.years,
-      FEE: form.feePct,
-      PRODUCTS: form.products,
-      INCOTERMS: form.incoterms,
-    })
-  );
-
-  // Vérification d'authentification après tous les hooks
-  if (authLoading) return <div className="p-6">Vérification des permissions...</div>;
-  if (!user) return <div className="p-6 text-red-600">Veuillez vous connecter en tant qu'admin.</div>;
-  if (!isAdmin) return <div className="p-6 text-red-600">Accès refusé. Permissions admin requises.</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-4">
-      {/* Bouton retour */}
-      <div className="mb-4">
-        <button onClick={() => nav('/admin/ncnda')} className="px-3 py-2 border rounded hover:bg-gray-50">
-          ← Retour à la liste NCNDA
-        </button>
-      </div>
-
-      {/* --- Barre d'options --- */}
-      <div className="bg-white border rounded p-3 grid grid-cols-1 md:grid-cols-4 gap-3">
-        <label className="text-sm">
-          {T.ui.lang}
-          <select
-            value={lang}
-            onChange={(e)=>{ setLang(e.target.value); onChange('lang', e.target.value); }}
-            className="w-full border rounded px-2 py-1"
-          >
-            <option value="fr">FR</option>
-            <option value="en">EN</option>
-          </select>
-        </label>
-
-        <label className="text-sm">
-          {T.ui.years}
-          <input
-            type="number" min={1} max={10}
-            value={form.years}
-            onChange={(e)=>onChange('years', Number(e.target.value))}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-
-        <label className="text-sm">
-          {T.ui.fee}
-          <input
-            type="number" step="0.1" min={0} max={20}
-            value={form.feePct}
-            onChange={(e)=>onChange('feePct', Number(e.target.value))}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-
-            <div className="flex items-end gap-2">
-              <button onClick={onSave} className="px-3 py-2 bg-green-600 text-white rounded">
-                {isNew ? T.ui.save : T.ui.update}
-              </button>
-              <button onClick={() => {
-                const previewWindow = window.open('', '_blank');
-                if (previewWindow && docRef.current) {
-                  previewWindow.document.write(docRef.current.outerHTML);
-                  previewWindow.document.close();
-                }
-              }} className="px-3 py-2 border rounded bg-blue-50 hover:bg-blue-100">
-                👁️ Aperçu
-              </button>
-              <button onClick={onDownload} className="px-3 py-2 border rounded">
-                {T.ui.download}
-              </button>
-            </div>
-      </div>
-
-      {/* --- Meta & champs --- */}
+      {/* --- Barre de saisie --- */}
       <div className="bg-white border rounded p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
         <label className="text-sm">
-          {T.ui.ref}
+          Reference
           <input
+            className="w-full border rounded px-2 py-1"
             value={form.ref}
             onChange={(e)=>onChange('ref', e.target.value)}
-            className="w-full border rounded px-2 py-1"
             placeholder="NCNDA-2025-001"
           />
         </label>
         <label className="text-sm">
-          {T.ui.dateIssued}
+          Date
           <input
             type="date"
+            className="w-full border rounded px-2 py-1"
             value={(form.dateIssued||'').slice(0,10)}
             onChange={(e)=>onChange('dateIssued', new Date(e.target.value).toISOString())}
-            className="w-full border rounded px-2 py-1"
           />
         </label>
-
-        <label className="text-sm md:col-span-3">
-          {T.ui.products}
-          <input
-            value={form.products}
-            onChange={(e)=>onChange('products', e.target.value)}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-
-        <label className="text-sm md:col-span-3">
-          {T.ui.incoterms}
-          <input
-            value={form.incoterms}
-            onChange={(e)=>onChange('incoterms', e.target.value)}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
+        <div className="flex items-end">
+          <button onClick={onDownload} className="px-3 py-2 border rounded w-full">Download PDF</button>
+        </div>
       </div>
 
-      {/* --- Blocs parties --- */}
-      <div className="bg-white border rounded p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <Block title={TEXTS[lang].ui.brokerBlock} data={form.broker} onChange={(k,v)=>onChange(`broker.${k}`, v)} T={TEXTS[lang].ui}/>
-        <Block title={TEXTS[lang].ui.sellerBlock} data={form.seller} onChange={(k,v)=>onChange(`seller.${k}`, v)} T={TEXTS[lang].ui}/>
-        <Block title={TEXTS[lang].ui.buyerBlock}  data={form.buyer}  onChange={(k,v)=>onChange(`buyer.${k}`, v)}  T={TEXTS[lang].ui}/>
+      {/* --- Parties --- */}
+      <div className="bg-white border rounded p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <PartyBlock title="Party 1" data={form.party1} onChange={(k,v)=>onChange(`party1.${k}`, v)} />
+        <PartyBlock title="Party 2" data={form.party2} onChange={(k,v)=>onChange(`party2.${k}`, v)} />
       </div>
 
-      {/* ================== APERCU DOCUMENT ================== */}
-      <div id="ncnda-document"
-           ref={docRef}
-           className="max-w-5xl mx-auto bg-white shadow border rounded p-8 print:p-0 print:shadow-none">
-        {/* Entête + logo ICC */}
-        <div className="pdf-header flex items-start gap-4 border-b pb-4">
+      {/* --- Aperçu Document --- */}
+      <div
+        id="ncnda-document"
+        ref={docRef}
+        className="max-w-5xl mx-auto bg-white shadow border rounded p-8 print:p-0 print:shadow-none"
+      >
+        {/* En-tête ICC */}
+        <div className="flex items-start gap-4 border-b pb-4">
           <img
-            src={'/icc%20logo.png'} /* nom exact fourni: 'icc logo.png' (avec espace) */
+            src="/icc%20logo.png"
             alt="ICC - International Chamber of Commerce"
-            className="h-12"
+            className="h-14"
             onError={(e)=>{ e.currentTarget.style.display='none'; }}
           />
           <div>
-            <h1 className="text-lg font-bold text-blue-800 leading-tight">{T.title}</h1>
-            <p className="text-gray-600 text-sm leading-relaxed">{T.subtitle}</p>
-            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-              {form.ref ? `Ref: ${form.ref}` : ''} {form.ref && ' · '} {fmtDate(form.dateIssued)}
+            <h1 className="text-2xl font-bold text-blue-800">{ICC_NCNDA.headerTitle}</h1>
+            <p className="text-xs text-gray-500 mt-1">
+              {form.ref ? `Ref: ${form.ref}` : ''} {form.ref && ' · '} {dateStr}
             </p>
           </div>
         </div>
 
+        {/* Préambule */}
+        <p className="mt-6 text-justify whitespace-pre-wrap">
+          {ICC_NCNDA.preface(dateStr)}
+        </p>
+
         {/* Clauses */}
-        <p className="mt-6 text-justify">{T.clausesIntro}</p>
-        <ol className="list-decimal ml-6 space-y-3 mt-4">
-          {clauses.map((c,i)=>(
-            <li key={i} className="text-justify">{c}</li>
+        <div className="space-y-3 mt-4">
+          {ICC_NCNDA.clauses.map((c, i) => (
+            <p key={i} className="text-justify whitespace-pre-wrap">{c}</p>
           ))}
-        </ol>
-
-        {/* Commission */}
-        <div className="bg-indigo-50 p-4 rounded border mt-6 avoid-page-break">
-          <h2 className="font-semibold text-indigo-800 mb-2">{T.commissionTitle}</h2>
-          <p className="text-justify">
-            {inject(T.commissionBody, { FEE: form.feePct })}
-          </p>
-        </div>
-
-        {/* Scope */}
-        <div className="bg-gray-50 p-4 rounded border mt-4 avoid-page-break">
-          <h2 className="font-semibold mb-2">{T.scopeTitle}</h2>
-          <p className="text-justify">
-            {inject(T.scopeBody, { PRODUCTS: form.products, INCOTERMS: form.incoterms })}
-          </p>
         </div>
 
         {/* EDT */}
-        <div className="bg-gray-50 p-4 rounded border mt-4 avoid-page-break">
-          <h2 className="font-semibold mb-2">{T.edtTitle}</h2>
-          <p className="text-justify">{T.edtBody}</p>
+        <div className="bg-gray-50 p-4 rounded border mt-6">
+          <h2 className="font-semibold mb-2">{ICC_NCNDA.edtTitle}</h2>
+          <pre className="whitespace-pre-wrap text-sm leading-relaxed">{ICC_NCNDA.edtBody}</pre>
         </div>
 
-        {/* Parties */}
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-3">{T.partiesTitle}</h2>
-          <PartyCard color="blue"  title={T.p1} data={form.broker} labels={T} />
-          <PartyCard color="green" title={T.p2} data={form.seller} labels={T} />
-          <PartyCard color="purple" title={T.p3} data={form.buyer}  labels={T} />
+        {/* Footer ICC */}
+        <div className="text-xs text-gray-600 mt-6">
+          <pre className="whitespace-pre-wrap">{ICC_NCNDA.footer}</pre>
         </div>
 
-        {/* Signatures */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center avoid-page-break">
-          <SignBox title={T.sigBroker} name={form.broker.nameTitle} dateLabel={T.date}/>
-          <SignBox title={T.sigSeller} name={form.seller.nameTitle} dateLabel={T.date}/>
-          <SignBox title={T.sigBuyer}  name={form.buyer.nameTitle}  dateLabel={T.date}/>
-        </div>
+        {/* Signature Page */}
+        <div className="mt-8 pt-6 border-t">
+          <h2 className="font-semibold mb-3">SIGNATURE PAGE</h2>
 
-        {/* Footer */}
-        <div className="text-xs text-gray-600 mt-10 pt-4 border-t">
-          <p>{T.footer1}</p>
-          <p className="mt-1">{T.footer2}</p>
+          <SignatureCard title="Party 1" data={form.party1} />
+          <SignatureCard title="Party 2" data={form.party2} />
         </div>
       </div>
     </div>
   );
 }
 
-// ---------- sous-composants ----------
-function Block({ title, data, onChange, T }) {
+function PartyBlock({ title, data, onChange }) {
   return (
     <div className="border rounded p-3 space-y-2">
       <h4 className="font-semibold mb-1">{title}</h4>
-      <Input label={T.nameTitle} value={data.nameTitle} onChange={(v)=>onChange('nameTitle', v)} />
-      <Input label={T.company}   value={data.company}   onChange={(v)=>onChange('company', v)} />
-      <Input label={T.address}   value={data.address}   onChange={(v)=>onChange('address', v)} />
-      <Input label={T.phone}     value={data.phone}     onChange={(v)=>onChange('phone', v)} />
-      <Input label={T.email}     value={data.email}     onChange={(v)=>onChange('email', v)} />
+      <LabeledInput label="Full Name/Title" value={data.nameTitle} onChange={(v)=>onChange('nameTitle', v)} />
+      <LabeledInput label="Corporation"     value={data.company}   onChange={(v)=>onChange('company', v)} />
+      <LabeledInput label="Address"         value={data.address}   onChange={(v)=>onChange('address', v)} />
+      <LabeledInput label="Tel"             value={data.phone}     onChange={(v)=>onChange('phone', v)} />
+      <LabeledInput label="E-mail"          value={data.email}     onChange={(v)=>onChange('email', v)} />
     </div>
   );
 }
-
-function Input({ label, value, onChange }) {
+function LabeledInput({ label, value, onChange }) {
   return (
     <label className="text-sm block">
       {label}
-      <input
-        className="w-full border rounded px-2 py-1"
-        value={value||''}
-        onChange={(e)=>onChange(e.target.value)}
-      />
+      <input className="w-full border rounded px-2 py-1" value={value||''} onChange={(e)=>onChange(e.target.value)} />
     </label>
   );
 }
-
-function PartyCard({ color='blue', title, data, labels }) {
-  const colorMap = {
-    blue:    'bg-blue-50 border-blue-200',
-    green:   'bg-green-50 border-green-200',
-    purple:  'bg-purple-50 border-purple-200',
-  };
+function SignatureCard({ title, data }) {
   return (
-    <div className={`p-4 rounded border mb-4 ${colorMap[color]||''}`}>
-      <h3 className={`font-semibold mb-2`}>{title}</h3>
-      <p><strong>{labels.fullName}:</strong> {data.nameTitle || '—'}</p>
-      <p><strong>{labels.corp}:</strong> {data.company || '—'}</p>
-      <p><strong>{labels.addr}:</strong> {data.address || '—'}</p>
-      <p><strong>{labels.tel}:</strong> {data.phone || '—'}</p>
-      <p><strong>{labels.email}:</strong> {data.email || '—'}</p>
-    </div>
-  );
-}
+    <div className="border rounded p-4 mb-4">
+      <h3 className="font-semibold mb-2">{title}</h3>
+      <p><strong>Full Name/Title:</strong> {data.nameTitle || '___________________'}</p>
+      <p><strong>Corporation:</strong> {data.company || '___________________'}</p>
+      <p><strong>Address:</strong> {data.address || '___________________'}</p>
+      <p><strong>Tel:</strong> {data.phone || '___________________'}</p>
+      <p><strong>E-mail:</strong> {data.email || '___________________'}</p>
 
-function SignBox({ title, name, dateLabel }) {
-  return (
-    <div>
-      <p className="font-semibold">{title}</p>
-      <div className="border-t mt-8 mb-1 w-48 mx-auto"></div>
-      <p>{name || '—'}</p>
-      <p className="text-xs text-gray-500">{dateLabel}: ________</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 text-center">
+        <div>
+          <div className="border-t mt-10 mb-1 w-48 mx-auto"></div>
+          <p>Name: ___________________</p>
+          <p>Position: ___________________</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-600">Authorized Signature and Corporate Seal</p>
+          <div className="border rounded h-24 mt-2"></div>
+        </div>
+      </div>
     </div>
   );
 }
