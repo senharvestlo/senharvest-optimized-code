@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import ProformaHTML from '../../components/docs/ProformaHTML';
 import QuotationHTML from '../../components/docs/QuotationHTML';
 import NCNDALite from '../../components/docs/NCNDALite';
+import PSAEditor from './psa/PSAEditor';
 import AdminProductSpecs from '../../components/admin/AdminProductSpecs';
 
 export default function AdminDashboard() {
@@ -48,6 +49,7 @@ export default function AdminDashboard() {
                 { k:'proforma',   label:'Proforma' },
                 { k:'quotation',  label:'Devis' },
                 { k:'ncnda',      label:'NCNDA' },
+                { k:'psa',        label:'PSA (Partage Bénéfices)' },
                 { k:'specs',      label:'Spécifications produits' },
               ].map(x=>(
                 <button
@@ -65,6 +67,7 @@ export default function AdminDashboard() {
             {tab==='proforma'  && <ProformaHTML />}
             {tab==='quotation' && <QuotationHTML />}
             {tab==='ncnda'     && <NCNDALite />}
+            {tab==='psa'       && <PSAEditor />}
             {tab==='specs'     && <AdminProductSpecs />}
           </div>
         </div>
