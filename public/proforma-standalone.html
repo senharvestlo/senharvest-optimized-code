@@ -46,8 +46,8 @@
       </div>
     </div>
 
-    <!-- Référence / Date / Devise -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Référence / Date / Devise / Logo -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
       <div>
         <label class="block text-sm font-semibold mb-1">Type de document</label>
         <select id="docType" class="w-full border p-2 rounded">
@@ -71,6 +71,13 @@
           <option value="CAD">$ CAD</option>
           <option value="AED">AED</option>
           <option value="XOF">F CFA</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1">Logo Société</label>
+        <select id="companyLogo" class="w-full border p-2 rounded">
+          <option value="SenHarvest logo NB.png">SenHarvest LLC (USA)</option>
+          <option value="Xidma Harvest Logo NB.png">Xidma & Harvest (Canada/Sénégal)</option>
         </select>
       </div>
     </div>
@@ -204,8 +211,11 @@
 
     <!-- Actions -->
     <div class="mt-6 flex gap-3">
-      <button type="button" id="genBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow">
-        ✅ <span data-i18n="actions.generate">Générer la Proforma</span>
+      <button type="button" id="previewBtn" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow">
+        👁️ Aperçu
+      </button>
+      <button type="button" id="downloadBtnForm" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow">
+        📥 Télécharger PDF
       </button>
       <button type="reset" id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
         🗑️ <span data-i18n="actions.reset">Réinitialiser</span>
@@ -222,8 +232,8 @@
         <p class="text-gray-600 mt-1" data-i18n="doc.subtitle">Commercial Offer Document</p>
       </div>
       <div class="text-right">
-        <!-- Logo SenHarvest uniquement -->
-        <img src="/senharvest-logo.png" alt="SenHarvest" class="h-10 mb-2" onerror="this.style.display='none'"/>
+        <!-- Logo dynamique selon société -->
+        <img id="doc-logo" src="/SenHarvest logo NB.png" alt="Logo" class="h-10 mb-2" onerror="this.style.display='none'"/>
         <p><strong data-i18n="ui.ref">Référence PI</strong> : <span id="doc-ref"></span></p>
         <p><strong data-i18n="ui.date">Date d'émission</strong> : <span id="doc-date"></span></p>
       </div>
@@ -341,11 +351,11 @@
 
   <!-- Contrôles PDF -->
   <div id="pdf-controls" class="text-center mt-8 no-print hidden">
-    <button id="downloadBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded shadow mr-3">
+    <button id="downloadBtnPreview" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded shadow mr-3">
       📥 <span data-i18n="actions.download">Télécharger en PDF</span>
     </button>
     <button id="editBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-8 rounded shadow">
-      ← <span data-i18n="actions.edit">Modifier</span>
+      ← <span data-i18n="actions.edit">Retour à l'édition</span>
     </button>
   </div>
 
@@ -464,6 +474,10 @@
       
       document.getElementById('doc-ref').textContent = document.getElementById('ref').value;
       document.getElementById('doc-date').textContent = document.getElementById('issueDate').value;
+      
+      // Logo dynamique
+      const selectedLogo = document.getElementById('companyLogo').value;
+      document.getElementById('doc-logo').src = '/' + selectedLogo;
       
       // Seller info
       document.getElementById('doc-seller-corp').textContent = document.getElementById('sellerCorp').value;
@@ -597,6 +611,28 @@
       window.scrollTo(0,0);
     }
 
+    function showPreview(){
+      generateDocument();
+    }
+
+    function downloadPDFDirect(){
+      // Generate document in background first
+      generateDocument();
+      // Wait a bit for DOM to update, then download
+      setTimeout(() => {
+        const element = document.getElementById('proforma-document');
+        const opt = {
+          margin: [0.5, 0.7, 0.7, 0.7],
+          filename: `${document.getElementById('ref').value}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+          jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+        html2pdf().set(opt).from(element).save();
+      }, 200);
+    }
+
     function downloadPDF(){
       const element = document.getElementById('proforma-document');
       const opt = {
@@ -654,8 +690,9 @@
       });
       document.getElementById('addRowBtn').addEventListener('click', ()=>addRow());
       document.querySelectorAll('.opt-col').forEach(chk=>chk.addEventListener('change', updateOptionalColsVisibility));
-      document.getElementById('genBtn').addEventListener('click', generateDocument);
-      document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
+      document.getElementById('previewBtn').addEventListener('click', showPreview);
+      document.getElementById('downloadBtnForm').addEventListener('click', downloadPDFDirect);
+      document.getElementById('downloadBtnPreview').addEventListener('click', downloadPDF);
       document.getElementById('editBtn').addEventListener('click', backToForm);
       document.getElementById('toggleBank').addEventListener('change', (e)=>{
         document.getElementById('bankBox').classList.toggle('hide', !e.target.checked);
