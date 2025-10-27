@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ProformaHTML from '../../components/docs/ProformaHTML';
-import QuotationHTML from '../../components/docs/QuotationHTML';
 import NCNDAEditor from './ncnda/NCNDAEditor';
 import PSAEditor from './psa/PSAEditor';
 import AdminProductSpecs from '../../components/admin/AdminProductSpecs';
@@ -46,8 +45,7 @@ export default function AdminDashboard() {
           <div className="border-b">
             <nav className="-mb-px flex gap-6 px-6 overflow-x-auto">
               {[
-                { k:'proforma',   label:'Proforma' },
-                { k:'quotation',  label:'Devis' },
+                { k:'proforma',   label:'Proforma / Devis' },
                 { k:'ncnda',      label:'NCNDA' },
                 { k:'psa',        label:'PSA (Partage Bénéfices)' },
                 { k:'specs',      label:'Spécifications produits' },
@@ -65,7 +63,6 @@ export default function AdminDashboard() {
 
           <div className="p-6">
             {tab==='proforma'  && <ProformaHTML />}
-            {tab==='quotation' && <QuotationHTML />}
             {tab==='ncnda'     && <NCNDAEditor />}
             {tab==='psa'       && <PSAEditor />}
             {tab==='specs'     && <AdminProductSpecs />}

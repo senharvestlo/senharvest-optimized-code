@@ -49,6 +49,13 @@
     <!-- Référence / Date / Devise -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
+        <label class="block text-sm font-semibold mb-1">Type de document</label>
+        <select id="docType" class="w-full border p-2 rounded">
+          <option value="proforma">Proforma Invoice</option>
+          <option value="devis">Devis / Quotation</option>
+        </select>
+      </div>
+      <div>
         <label class="block text-sm font-semibold mb-1" data-i18n="ui.ref">Référence PI</label>
         <input type="text" id="ref" readonly class="w-full border p-2 rounded bg-gray-100" />
       </div>
@@ -65,10 +72,6 @@
           <option value="AED">AED</option>
           <option value="XOF">F CFA</option>
         </select>
-      </div>
-      <div>
-        <label class="block text-sm font-semibold mb-1" data-i18n="ui.validity">Validité (jours)</label>
-        <input type="number" id="validity" class="w-full border p-2 rounded" value="30" min="1" />
       </div>
     </div>
 
@@ -122,7 +125,7 @@
     </div>
 
     <!-- Conditions commerciales -->
-    <div class="bg-gray-50 p-4 rounded border mt-6">
+    <div id="trade-conditions-form" class="bg-gray-50 p-4 rounded border mt-6">
       <h3 class="font-semibold mb-3" data-i18n="trade.title">🚚 Conditions commerciales</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <input type="text" id="origin" class="border p-2 rounded" placeholder="Origine (ex: Sénégal)" />
@@ -258,7 +261,7 @@
     </div>
 
     <!-- Informations générales -->
-    <div class="bg-gray-50 p-5 rounded border mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm avoid-break">
+    <div id="trade-conditions" class="bg-gray-50 p-5 rounded border mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm avoid-break">
       <div>
         <p><strong data-i18n="trade.origin">Origin:</strong> <span id="doc-origin"></span></p>
         <p><strong data-i18n="trade.destination">Destination:</strong> <span id="doc-destination"></span></p>
@@ -309,14 +312,14 @@
     </div>
 
     <!-- Signatures -->
-    <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 text-center avoid-break">
+    <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 text-center avoid-break" id="signatures-section">
       <div>
         <p class="font-semibold" data-i18n="sign.seller">Authorized Signature – Seller</p>
         <div class="signature-line"></div>
         <p>Mr. Abdou Lahat Lo</p>
         <p class="text-sm muted">Manager – SenHarvest LLC</p>
       </div>
-      <div>
+      <div id="buyer-signature-block">
         <p class="font-semibold" data-i18n="sign.buyer">Authorized Signature – Buyer</p>
         <div class="signature-line"></div>
         <p id="doc-buyer-sign-name">[Buyer Name]</p>
@@ -393,11 +396,13 @@
 
     // ===== Utils =====
     function generateRef(){
+      const docType = document.getElementById('docType').value;
+      const prefix = docType === 'devis' ? 'DEV' : 'PI';
       const now = new Date();
       const year = now.getFullYear().toString().slice(-2);
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const rand = Math.floor(1000 + Math.random()*9000);
-      return `PI-${year}${month}-${rand}`;
+      return `${prefix}-${year}${month}-${rand}`;
     }
     function money(n){ return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2); }
 
@@ -449,8 +454,36 @@
 
     // ===== Générer Document =====
     function generateDocument(){
+      const docType = document.getElementById('docType').value;
+      const isDevis = docType === 'devis';
+      
       document.getElementById('doc-ref').textContent = document.getElementById('ref').value;
       document.getElementById('doc-date').textContent = document.getElementById('issueDate').value;
+      
+      // Update title
+      document.querySelector('[data-i18n="doc.title"]').textContent = isDevis ? 'QUOTATION / DEVIS' : 'PROFORMA INVOICE';
+      document.querySelector('[data-i18n="doc.subtitle"]').textContent = isDevis ? 'Commercial Offer' : 'Commercial Offer Document';
+      
+      // Hide/show sections based on document type
+      const tradeConditionsForm = document.getElementById('trade-conditions-form');
+      const tradeConditionsDoc = document.getElementById('trade-conditions');
+      const buyerSignature = document.getElementById('buyer-signature-block');
+      const docBank = document.getElementById('doc-bank');
+      
+      if (isDevis) {
+        if (tradeConditionsForm) tradeConditionsForm.style.display = 'none';
+        if (tradeConditionsDoc) tradeConditionsDoc.style.display = 'none';
+        if (buyerSignature) buyerSignature.style.display = 'none';
+        if (docBank) docBank.style.display = 'none';
+      } else {
+        if (tradeConditionsForm) tradeConditionsForm.style.display = 'block';
+        if (tradeConditionsDoc) tradeConditionsDoc.style.display = 'block';
+        if (buyerSignature) buyerSignature.style.display = 'block';
+        if (docBank && document.getElementById('toggleBank').checked) {
+          docBank.style.display = 'block';
+        }
+      }
+
       document.getElementById('doc-buyer-name').textContent = document.getElementById('buyerName').value;
       document.getElementById('doc-buyer-corp').textContent = document.getElementById('buyerCorp').value;
       document.getElementById('doc-buyer-address').textContent = document.getElementById('buyerAddress').value;
@@ -577,6 +610,34 @@
       document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
       addRow(); addRow();
       document.getElementById('lang').addEventListener('change', applyI18N);
+      document.getElementById('docType').addEventListener('change', ()=>{
+        document.getElementById('ref').value = generateRef();
+        const isDevis = document.getElementById('docType').value === 'devis';
+        const tradeConditionsForm = document.getElementById('trade-conditions-form');
+        const bankToggle = document.getElementById('toggleBank');
+        
+        // Adjust label for reference field
+        const refLabel = document.querySelector('label[for="ref"]');
+        if (refLabel) {
+          refLabel.textContent = isDevis ? 'Référence Devis' : 'Référence PI';
+        }
+        
+        // Hide/show conditions form
+        if (tradeConditionsForm) {
+          tradeConditionsForm.style.display = isDevis ? 'none' : 'block';
+        }
+        
+        // Disable bank toggle for devis
+        if (bankToggle) {
+          if (isDevis) {
+            bankToggle.checked = false;
+            bankToggle.disabled = true;
+            document.getElementById('bankBox').classList.add('hide');
+          } else {
+            bankToggle.disabled = false;
+          }
+        }
+      });
       document.getElementById('addRowBtn').addEventListener('click', ()=>addRow());
       document.querySelectorAll('.opt-col').forEach(chk=>chk.addEventListener('change', updateOptionalColsVisibility));
       document.getElementById('genBtn').addEventListener('click', generateDocument);
