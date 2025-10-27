@@ -82,16 +82,16 @@ export default function NCNDAEditor() {
           li { page-break-inside: avoid; }
         }
         #ncnda-document ol { 
-          list-style-position: outside; 
-          margin-left: 1.75rem; 
-          padding-left: 0; 
+          list-style-position: inside;   /* ✅ numéro aligné avec le texte */
+          margin-left: 0; 
+          padding-left: 1rem;            /* espace uniforme */
           counter-reset: none;
         }
         #ncnda-document li { 
           margin-bottom: 0.8rem; 
-          padding-left: 0;
-          text-indent: 0;
+          text-indent: 0;                /* pas de retrait supplémentaire */
           display: list-item;
+          line-height: 1.5;              /* améliore la lisibilité */
         }
       `}</style>
 
