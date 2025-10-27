@@ -81,8 +81,8 @@ export default function NCNDAEditor() {
           ol, ul { page-break-inside: avoid; }
           li { page-break-inside: avoid; }
         }
-        ol { list-style-position: outside; margin-left: 1.5rem; }
-        li { margin-bottom: 0.8rem; }
+        ol { list-style-position: outside; margin-left: 2rem; padding-left: 0; }
+        li { margin-bottom: 0.8rem; padding-left: 0.5rem; text-indent: -0.5rem; }
       `}</style>
 
       {/* Barre de commandes */}
