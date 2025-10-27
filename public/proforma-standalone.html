@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proforma Invoice - SenHarvest</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root { --body-font-size: 14px; }
+    body { font-size: var(--body-font-size); }
+    @media print {
+      .no-print { display: none !important; }
+      body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+    }
+    /* Anti-décalage PDF et coupures */
+    .doc-container { line-height: 1.35; }
+    .avoid-break { page-break-inside: avoid; }
+    .page-break { page-break-before: always; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #e5e7eb; padding: 6px 8px; vertical-align: top; }
+    th { background: #f3f4f6; }
+    .signature-line { border-top: 1px solid #000; width: 80%; margin: 36px auto 8px; }
+    .muted { color: #6b7280; }
+    .section-title { font-weight: 600; margin-bottom: .5rem; }
+    .hide { display:none !important; }
+  </style>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
+
+  <!-- ===== Formulaire (édition) ===== -->
+  <div id="form-section" class="max-w-6xl mx-auto bg-white shadow-lg border rounded-lg p-6 mb-8 no-print">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-2xl font-bold text-blue-800">🧾 Proforma Invoice — Éditeur</h2>
+      <div class="flex items-center gap-2">
+        <label class="text-sm font-medium" for="lang">Lang</label>
+        <select id="lang" class="border rounded px-2 py-1">
+          <option value="fr" selected>FR</option>
+          <option value="en">EN</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Référence / Date / Devise -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-semibold mb-1" data-i18n="ui.ref">Référence PI</label>
+        <input type="text" id="ref" readonly class="w-full border p-2 rounded bg-gray-100" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1" data-i18n="ui.date">Date d'émission</label>
+        <input type="date" id="issueDate" class="w-full border p-2 rounded" required />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1" data-i18n="ui.currency">Devise</label>
+        <select id="currency" class="w-full border p-2 rounded">
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
+          <option value="CAD">$ CAD</option>
+          <option value="AED">AED</option>
+          <option value="XOF">F CFA</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold mb-1" data-i18n="ui.validity">Validité (jours)</label>
+        <input type="number" id="validity" class="w-full border p-2 rounded" value="30" min="1" />
+      </div>
+    </div>
+
+    <!-- Parties -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <!-- Acheteur -->
+      <div class="border rounded p-4">
+        <h3 class="font-semibold text-green-800 mb-3" data-i18n="buyer.title">Acheteur / Importateur</h3>
+        <div class="space-y-3">
+          <input type="text" placeholder="Nom complet" id="buyerName" class="w-full border p-2 rounded" required />
+          <input type="text" placeholder="Entreprise" id="buyerCorp" class="w-full border p-2 rounded" required />
+          <textarea placeholder="Adresse" id="buyerAddress" class="w-full border p-2 rounded" rows="3" required></textarea>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="tel" placeholder="Téléphone" id="buyerPhone" class="w-full border p-2 rounded" />
+            <input type="email" placeholder="Email" id="buyerEmail" class="w-full border p-2 rounded" />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" placeholder="Tax ID / VAT (optionnel)" id="buyerTax" class="w-full border p-2 rounded" />
+            <input type="text" placeholder="Contact (optionnel)" id="buyerContact" class="w-full border p-2 rounded" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Vendeur -->
+      <div class="border rounded p-4">
+        <h3 class="font-semibold text-blue-800 mb-3" data-i18n="seller.title">Vendeur / Exportateur</h3>
+        <div class="space-y-1 text-sm">
+          <p><strong>SenHarvest LLC</strong></p>
+          <p>1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</p>
+          <p>Tel: +1 819 319 8464</p>
+          <p>Email: abdou.lo@senharvestllc.com</p>
+          <p>RC/Tax ID: SN-DK-XXXXXXX</p>
+        </div>
+
+        <!-- Infos bancaires (facultatif) -->
+        <div class="mt-4">
+          <label class="inline-flex items-center gap-2 text-sm">
+            <input type="checkbox" id="toggleBank" />
+            <span data-i18n="bank.add">Ajouter infos bancaires (facultatif)</span>
+          </label>
+          <div id="bankBox" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 hide">
+            <input type="text" id="bankName" class="border p-2 rounded" placeholder="Bank name" />
+            <input type="text" id="bankBranch" class="border p-2 rounded" placeholder="Branch / Address" />
+            <input type="text" id="bankBenef" class="border p-2 rounded" placeholder="Beneficiary name" />
+            <input type="text" id="bankIban" class="border p-2 rounded" placeholder="IBAN / Account No." />
+            <input type="text" id="bankSwift" class="border p-2 rounded" placeholder="SWIFT/BIC" />
+            <input type="text" id="bankNote" class="border p-2 rounded" placeholder="Note (optional)" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conditions commerciales -->
+    <div class="bg-gray-50 p-4 rounded border mt-6">
+      <h3 class="font-semibold mb-3" data-i18n="trade.title">🚚 Conditions commerciales</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="origin" class="border p-2 rounded" placeholder="Origine (ex: Sénégal)" />
+        <input type="text" id="destination" class="border p-2 rounded" placeholder="Destination (ex: EAU)" />
+        <input type="text" id="portLoading" class="border p-2 rounded" placeholder="Port d'embarquement (ex: Dakar)" />
+        <select id="incoterm" class="border p-2 rounded">
+          <option value="">Incoterm</option>
+          <option value="FOB">FOB</option>
+          <option value="CIF">CIF</option>
+          <option value="CFR">CFR</option>
+          <option value="EXW">EXW</option>
+          <option value="DAP">DAP</option>
+        </select>
+        <select id="paymentMethod" class="border p-2 rounded">
+          <option value="">Moyen de paiement</option>
+          <option value="T/T advance">T/T advance</option>
+          <option value="Irrevocable L/C at sight">Irrevocable L/C at sight</option>
+          <option value="DP">DP</option>
+        </select>
+        <input type="text" id="paymentTerms" class="border p-2 rounded" placeholder="Conditions de paiement (ex: 30% avant, solde contre BL)" />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+        <input type="number" id="discount" class="border p-2 rounded" placeholder="Remise % (optionnel)" step="0.01" />
+        <input type="number" id="tax" class="border p-2 rounded" placeholder="TVA/Taxe % (optionnel)" step="0.01" />
+        <input type="text" id="insurance" class="border p-2 rounded" placeholder="Assurance (optionnel)" />
+        <input type="text" id="inspection" class="border p-2 rounded" placeholder="Inspection (SGS/BV...) (optionnel)" />
+      </div>
+    </div>
+
+    <!-- Colonnes optionnelles Produits -->
+    <div class="mt-4 text-sm flex flex-wrap gap-4">
+      <span class="font-semibold" data-i18n="opts.title">Colonnes optionnelles :</span>
+      <label class="inline-flex items-center gap-2"><input type="checkbox" class="opt-col" data-col="hs" /> HS Code</label>
+      <label class="inline-flex items-center gap-2"><input type="checkbox" class="opt-col" data-col="weights" /> Poids brut/net</label>
+      <label class="inline-flex items-center gap-2"><input type="checkbox" class="opt-col" data-col="pack" /> Conditionnement</label>
+      <label class="inline-flex items-center gap-2"><input type="checkbox" class="opt-col" data-col="ctr" /> Conteneur(s)</label>
+    </div>
+
+    <!-- Tableau des produits -->
+    <div class="mt-3">
+      <h3 class="font-semibold mb-2" data-i18n="products.list">📦 Liste des Produits</h3>
+      <table id="products-table" class="w-full border">
+        <thead>
+          <tr>
+            <th data-i18n="products.product">Produit</th>
+            <th data-i18n="products.grade">Qualité / Spécifs</th>
+            <th data-i18n="products.qty" class="text-center">Qté</th>
+            <th data-i18n="products.unit" class="text-center">Unité</th>
+            <th class="text-center opt-hs hide">HS Code</th>
+            <th class="text-center opt-weights hide" data-i18n="products.weights">Poids brut/net</th>
+            <th class="text-center opt-pack hide" data-i18n="products.pack">Conditionnement</th>
+            <th class="text-center opt-ctr hide" data-i18n="products.ctr">Conteneur(s)</th>
+            <th data-i18n="products.unitPrice" class="text-center">Prix unitaire</th>
+            <th data-i18n="products.total" class="text-center">Total</th>
+            <th>—</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button type="button" id="addRowBtn" class="mt-2 bg-green-600 hover:bg-green-700 text-white py-1 px-4 rounded text-sm">
+        + <span data-i18n="products.add">Ajouter un produit</span>
+      </button>
+    </div>
+
+    <!-- Notes -->
+    <div class="mt-4">
+      <label class="block font-semibold mb-1" data-i18n="notes.title">📝 Notes supplémentaires</label>
+      <textarea id="notes" class="w-full border p-2 rounded" rows="3" placeholder="Ex: Emballage spécial, inspection SGS, etc."></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-6 flex gap-3">
+      <button type="button" id="genBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow">
+        ✅ <span data-i18n="actions.generate">Générer la Proforma</span>
+      </button>
+      <button type="reset" id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+        🗑️ <span data-i18n="actions.reset">Réinitialiser</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== Document (aperçu / PDF) ===== -->
+  <div id="proforma-document" class="max-w-5xl mx-auto bg-white shadow-lg border rounded-lg p-8 doc-container hidden">
+    <!-- En-tête -->
+    <div class="flex justify-between items-start mb-6 avoid-break">
+      <div>
+        <h1 class="text-3xl font-bold text-blue-800" data-i18n="doc.title">PROFORMA INVOICE</h1>
+        <p class="text-gray-600 mt-1" data-i18n="doc.subtitle">Commercial Offer Document</p>
+      </div>
+      <div class="text-right">
+        <!-- Logo SenHarvest uniquement -->
+        <img src="/senharvest-logo.png" alt="SenHarvest" class="h-10 mb-2" onerror="this.style.display='none'"/>
+        <p><strong data-i18n="ui.ref">Référence PI</strong> : <span id="doc-ref"></span></p>
+        <p><strong data-i18n="ui.date">Date d'émission</strong> : <span id="doc-date"></span></p>
+      </div>
+    </div>
+
+    <!-- Parties -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 avoid-break">
+      <!-- Vendeur -->
+      <div class="bg-blue-50 p-5 rounded border">
+        <h3 class="font-semibold text-blue-800 mb-2" data-i18n="seller.block">SELLER / EXPORTER</h3>
+        <p><strong>Name:</strong> SenHarvest LLC</p>
+        <p><strong>Address:</strong> 1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</p>
+        <p><strong>Tel:</strong> +1 819 319 8464</p>
+        <p><strong>Email:</strong> abdou.lo@senharvestllc.com</p>
+        <p><strong>RC/Tax ID:</strong> SN-DK-XXXXXXX</p>
+
+        <!-- Infos bancaires (affichage si rempli) -->
+        <div id="doc-bank" class="mt-3 hidden">
+          <h4 class="font-semibold text-sm mb-1" data-i18n="bank.title">Bank Details</h4>
+          <p><strong data-i18n="bank.name">Bank</strong>: <span id="doc-bank-name"></span></p>
+          <p><strong data-i18n="bank.branch">Branch</strong>: <span id="doc-bank-branch"></span></p>
+          <p><strong data-i18n="bank.benef">Beneficiary</strong>: <span id="doc-bank-benef"></span></p>
+          <p><strong data-i18n="bank.iban">IBAN/Account</strong>: <span id="doc-bank-iban"></span></p>
+          <p><strong data-i18n="bank.swift">SWIFT</strong>: <span id="doc-bank-swift"></span></p>
+          <p class="text-xs"><span id="doc-bank-note"></span></p>
+        </div>
+      </div>
+
+      <!-- Acheteur -->
+      <div class="bg-green-50 p-5 rounded border">
+        <h3 class="font-semibold text-green-800 mb-2" data-i18n="buyer.block">BUYER / IMPORTER</h3>
+        <p><strong>Name:</strong> <span id="doc-buyer-name"></span></p>
+        <p><strong>Company:</strong> <span id="doc-buyer-corp"></span></p>
+        <p><strong>Address:</strong> <span id="doc-buyer-address"></span></p>
+        <p><strong>Tel:</strong> <span id="doc-buyer-phone"></span></p>
+        <p><strong>Email:</strong> <span id="doc-buyer-email"></span></p>
+        <p class="muted"><strong>Tax/VAT:</strong> <span id="doc-buyer-tax">-</span></p>
+        <p class="muted"><strong>Contact:</strong> <span id="doc-buyer-contact">-</span></p>
+      </div>
+    </div>
+
+    <!-- Informations générales -->
+    <div class="bg-gray-50 p-5 rounded border mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm avoid-break">
+      <div>
+        <p><strong data-i18n="trade.origin">Origin:</strong> <span id="doc-origin"></span></p>
+        <p><strong data-i18n="trade.destination">Destination:</strong> <span id="doc-destination"></span></p>
+      </div>
+      <div>
+        <p><strong data-i18n="trade.incoterm">Incoterm:</strong> <span id="doc-incoterm"></span></p>
+        <p><strong data-i18n="trade.port">Port of Loading:</strong> <span id="doc-port"></span></p>
+      </div>
+      <div>
+        <p><strong data-i18n="trade.pm">Payment Method:</strong> <span id="doc-payment-method"></span></p>
+        <p><strong data-i18n="trade.pt">Payment Terms:</strong> <span id="doc-payment-terms"></span></p>
+      </div>
+    </div>
+
+    <!-- Tableau Produits -->
+    <h2 class="text-xl font-semibold mb-3" data-i18n="products.descTitle">PRODUCTS DESCRIPTION</h2>
+    <table class="mb-4 text-sm avoid-break" id="doc-products">
+      <thead>
+        <tr>
+          <th data-i18n="products.product">Product</th>
+          <th data-i18n="products.grade">Grade / Specs</th>
+          <th class="text-center" data-i18n="products.qty">Qty</th>
+          <th class="text-center" data-i18n="products.unit">Unit</th>
+          <th class="text-center opt-hs hide">HS Code</th>
+          <th class="text-center opt-weights hide" data-i18n="products.weights">Gross/Net</th>
+          <th class="text-center opt-pack hide" data-i18n="products.pack">Packaging</th>
+          <th class="text-center opt-ctr hide" data-i18n="products.ctr">Container(s)</th>
+          <th class="text-center" data-i18n="products.unitPrice">Unit Price</th>
+          <th class="text-center" data-i18n="products.total">Total</th>
+        </tr>
+      </thead>
+      <tbody id="doc-products-body"></tbody>
+    </table>
+
+    <!-- Totaux -->
+    <div class="text-right mb-6 avoid-break" id="totalsBox">
+      <p><span class="font-semibold" data-i18n="totals.subtotal">Subtotal</span>: <span id="doc-subtotal">0</span> <span id="doc-cur">USD</span></p>
+      <p class="hide" id="row-discount"><span class="font-semibold" data-i18n="totals.discount">Discount</span>: -<span id="doc-discount">0</span> <span id="doc-cur2">USD</span></p>
+      <p class="hide" id="row-tax"><span class="font-semibold" data-i18n="totals.tax">Tax</span>: <span id="doc-tax">0</span> <span id="doc-cur3">USD</span></p>
+      <p class="text-lg font-semibold"><span data-i18n="totals.grand">Grand Total</span>: <span id="doc-grand">0</span> <span id="doc-cur4">USD</span></p>
+    </div>
+
+    <!-- Notes -->
+    <div class="bg-yellow-50 p-4 rounded border mb-6 avoid-break">
+      <h3 class="font-semibold text-yellow-800 mb-2" data-i18n="notes.block">NOTES & ADDITIONAL DETAILS</h3>
+      <p class="text-sm" id="doc-notes">-</p>
+      <p class="text-xs mt-2"><span data-i18n="doc.valid">This offer is valid for</span> <span id="doc-validity"></span> <span data-i18n="doc.days">days</span>.</p>
+    </div>
+
+    <!-- Signatures -->
+    <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 text-center avoid-break">
+      <div>
+        <p class="font-semibold" data-i18n="sign.seller">Authorized Signature – Seller</p>
+        <div class="signature-line"></div>
+        <p>Mr. Abdou Lahat Lo</p>
+        <p class="text-sm muted">Manager – SenHarvest LLC</p>
+      </div>
+      <div>
+        <p class="font-semibold" data-i18n="sign.buyer">Authorized Signature – Buyer</p>
+        <div class="signature-line"></div>
+        <p id="doc-buyer-sign-name">[Buyer Name]</p>
+        <p class="text-sm muted" data-i18n="sign.position">Position: [Position]</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t pt-4 mt-8 text-xs muted avoid-break">
+      <p data-i18n="doc.foot1">This document is a commercial offer and not a tax invoice.</p>
+      <p class="mt-1" data-i18n="doc.foot2">All transactions are subject to NCNDA.</p>
+    </div>
+  </div>
+
+  <!-- Contrôles PDF -->
+  <div id="pdf-controls" class="text-center mt-8 no-print hidden">
+    <button id="downloadBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-8 rounded shadow mr-3">
+      📥 <span data-i18n="actions.download">Télécharger en PDF</span>
+    </button>
+    <button id="editBtn" class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-8 rounded shadow">
+      ← <span data-i18n="actions.edit">Modifier</span>
+    </button>
+  </div>
+
+  <script>
+    // ===== i18n (FR/EN) =====
+    const I18N = {
+      fr: {
+        "ui.ref":"Référence PI","ui.date":"Date d'émission","ui.currency":"Devise","ui.validity":"Validité (jours)",
+        "buyer.title":"Acheteur / Importateur","seller.title":"Vendeur / Exportateur",
+        "bank.add":"Ajouter infos bancaires (facultatif)","bank.title":"Coordonnées bancaires",
+        "bank.name":"Banque","bank.branch":"Agence/Adresse","bank.benef":"Bénéficiaire","bank.iban":"IBAN/Compte","bank.swift":"SWIFT",
+        "trade.title":"🚚 Conditions commerciales","trade.origin":"Origine","trade.destination":"Destination",
+        "trade.incoterm":"Incoterm","trade.port":"Port d'embarquement","trade.pm":"Moyen de paiement","trade.pt":"Conditions de paiement",
+        "opts.title":"Colonnes optionnelles :",
+        "products.list":"📦 Liste des Produits","products.product":"Produit","products.grade":"Qualité / Spécifs",
+        "products.qty":"Qté","products.unit":"Unité","products.weights":"Poids brut/net",
+        "products.pack":"Conditionnement","products.ctr":"Conteneur(s)","products.unitPrice":"Prix unitaire","products.total":"Total",
+        "products.add":"Ajouter un produit","notes.title":"📝 Notes supplémentaires",
+        "actions.generate":"Générer la Proforma","actions.reset":"Réinitialiser","actions.download":"Télécharger en PDF","actions.edit":"Modifier",
+        "doc.title":"PROFORMA INVOICE","doc.subtitle":"Commercial Offer Document","seller.block":"SELLER / EXPORTER","buyer.block":"BUYER / IMPORTER",
+        "products.descTitle":"PRODUCTS DESCRIPTION","totals.subtotal":"Sous-total","totals.discount":"Remise","totals.tax":"TVA/Taxe",
+        "totals.grand":"Total général","notes.block":"NOTES & DÉTAILS SUPPLÉMENTAIRES","doc.valid":"Cette offre est valable",
+        "doc.days":"jours","sign.seller":"Signature autorisée – Vendeur","sign.buyer":"Signature autorisée – Acheteur","sign.position":"Fonction : [Fonction]",
+        "doc.foot1":"Ce document est une offre commerciale et non une facture fiscale.","doc.foot2":"Toutes les transactions sont soumises au NCNDA."
+      },
+      en: {
+        "ui.ref":"Reference","ui.date":"Date issued","ui.currency":"Currency","ui.validity":"Validity (days)",
+        "buyer.title":"Buyer / Importer","seller.title":"Seller / Exporter",
+        "bank.add":"Add bank details (optional)","bank.title":"Bank Details",
+        "bank.name":"Bank","bank.branch":"Branch/Address","bank.benef":"Beneficiary","bank.iban":"IBAN/Account","bank.swift":"SWIFT",
+        "trade.title":"🚚 Trade Conditions","trade.origin":"Origin","trade.destination":"Destination",
+        "trade.incoterm":"Incoterm","trade.port":"Port of Loading","trade.pm":"Payment Method","trade.pt":"Payment Terms",
+        "opts.title":"Optional columns:",
+        "products.list":"📦 Products List","products.product":"Product","products.grade":"Grade / Specs",
+        "products.qty":"Qty","products.unit":"Unit","products.weights":"Gross/Net",
+        "products.pack":"Packaging","products.ctr":"Container(s)","products.unitPrice":"Unit Price","products.total":"Total",
+        "products.add":"Add product","notes.title":"📝 Additional notes",
+        "actions.generate":"Generate Proforma","actions.reset":"Reset","actions.download":"Download PDF","actions.edit":"Edit",
+        "doc.title":"PROFORMA INVOICE","doc.subtitle":"Commercial Offer Document","seller.block":"SELLER / EXPORTER","buyer.block":"BUYER / IMPORTER",
+        "products.descTitle":"PRODUCTS DESCRIPTION","totals.subtotal":"Subtotal","totals.discount":"Discount","totals.tax":"Tax",
+        "totals.grand":"Grand Total","notes.block":"NOTES & ADDITIONAL DETAILS","doc.valid":"This offer is valid for",
+        "doc.days":"days","sign.seller":"Authorized Signature – Seller","sign.buyer":"Authorized Signature – Buyer","sign.position":"Position: [Position]",
+        "doc.foot1":"This document is a commercial offer and not a tax invoice.","doc.foot2":"All transactions are subject to NCNDA."
+      }
+    };
+
+    function t(key){ const lang = document.getElementById('lang').value; return I18N[lang][key] || I18N['fr'][key] || key; }
+    function applyI18N(){
+      document.querySelectorAll('[data-i18n]').forEach(el=>{
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+    }
+
+    // ===== Utils =====
+    function generateRef(){
+      const now = new Date();
+      const year = now.getFullYear().toString().slice(-2);
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const rand = Math.floor(1000 + Math.random()*9000);
+      return `PI-${year}${month}-${rand}`;
+    }
+    function money(n){ return (Math.round((n + Number.EPSILON) * 100) / 100).toFixed(2); }
+
+    // ===== Produits (édition) =====
+    const tbody = () => document.querySelector('#products-table tbody');
+    function addRow(values={}){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" class="w-full border p-1 text-sm prod-name" placeholder="Produit" value="${values.name||''}" required/></td>
+        <td><input type="text" class="w-full border p-1 text-sm prod-grade" placeholder="Grade, humidité..." value="${values.grade||''}"/></td>
+        <td><input type="number" step="0.001" class="w-full border p-1 text-sm prod-qty" placeholder="Qté" value="${values.qty||''}" required/></td>
+        <td>
+          <select class="w-full border p-1 text-sm prod-unit">
+            ${['MT','KG','TON','UNIT','BAG'].map(u=>`<option ${values.unit===u?'selected':''} value="${u}">${u}</option>`).join('')}
+          </select>
+        </td>
+        <td class="opt-hs hide"><input type="text" class="w-full border p-1 text-sm prod-hs" placeholder="HS Code" value="${values.hs||''}"/></td>
+        <td class="opt-weights hide"><input type="text" class="w-full border p-1 text-sm prod-weights" placeholder="ex: 20/19.5 MT" value="${values.weights||''}"/></td>
+        <td class="opt-pack hide"><input type="text" class="w-full border p-1 text-sm prod-pack" placeholder="ex: 50kg bags" value="${values.pack||''}"/></td>
+        <td class="opt-ctr hide"><input type="text" class="w-full border p-1 text-sm prod-ctr" placeholder="ex: 1x20'FCL" value="${values.ctr||''}"/></td>
+        <td><input type="number" step="0.0001" class="w-full border p-1 text-sm prod-price" placeholder="PU" value="${values.price||''}" required/></td>
+        <td><input type="text" class="w-full border p-1 text-sm bg-gray-100 prod-total" placeholder="Total" value="" readonly/></td>
+        <td><button type="button" class="text-red-600 text-sm delRow">×</button></td>
+      `;
+      tbody().appendChild(tr);
+      tr.querySelectorAll('.prod-qty,.prod-price').forEach(inp=>inp.addEventListener('input', ()=>updateRowTotal(tr)));
+      tr.querySelector('.delRow').addEventListener('click', ()=>tr.remove());
+      updateOptionalColsVisibility();
+      updateRowTotal(tr);
+    }
+    function updateRowTotal(tr){
+      const qty = parseFloat(tr.querySelector('.prod-qty')?.value)||0;
+      const price = parseFloat(tr.querySelector('.prod-price')?.value)||0;
+      tr.querySelector('.prod-total').value = money(qty*price);
+    }
+    function updateOptionalColsVisibility(){
+      const flags = {
+        hs: document.querySelector('.opt-col[data-col="hs"]').checked,
+        weights: document.querySelector('.opt-col[data-col="weights"]').checked,
+        pack: document.querySelector('.opt-col[data-col="pack"]').checked,
+        ctr: document.querySelector('.opt-col[data-col="ctr"]').checked,
+      };
+      ['hs','weights','pack','ctr'].forEach(k=>{
+        document.querySelectorAll(`.opt-${k}`).forEach(el=>{
+          el.classList.toggle('hide', !flags[k]);
+        });
+      });
+    }
+
+    // ===== Générer Document =====
+    function generateDocument(){
+      document.getElementById('doc-ref').textContent = document.getElementById('ref').value;
+      document.getElementById('doc-date').textContent = document.getElementById('issueDate').value;
+      document.getElementById('doc-buyer-name').textContent = document.getElementById('buyerName').value;
+      document.getElementById('doc-buyer-corp').textContent = document.getElementById('buyerCorp').value;
+      document.getElementById('doc-buyer-address').textContent = document.getElementById('buyerAddress').value;
+      document.getElementById('doc-buyer-phone').textContent = document.getElementById('buyerPhone').value || '-';
+      document.getElementById('doc-buyer-email').textContent = document.getElementById('buyerEmail').value || '-';
+      document.getElementById('doc-buyer-tax').textContent = document.getElementById('buyerTax').value || '-';
+      document.getElementById('doc-buyer-contact').textContent = document.getElementById('buyerContact').value || '-';
+      document.getElementById('doc-origin').textContent = document.getElementById('origin').value || '-';
+      document.getElementById('doc-destination').textContent = document.getElementById('destination').value || '-';
+      document.getElementById('doc-incoterm').textContent = document.getElementById('incoterm').value || '-';
+      document.getElementById('doc-port').textContent = document.getElementById('portLoading').value || '-';
+      document.getElementById('doc-payment-method').textContent = document.getElementById('paymentMethod').value || '-';
+      document.getElementById('doc-payment-terms').textContent = document.getElementById('paymentTerms').value || '-';
+      const cur = document.getElementById('currency').value || 'USD';
+      document.querySelectorAll('#doc-cur,#doc-cur2,#doc-cur3,#doc-cur4').forEach(el=>el.textContent = cur);
+      const docBody = document.getElementById('doc-products-body');
+      docBody.innerHTML = '';
+      let subtotal = 0;
+      const show = {
+        hs: document.querySelector('.opt-col[data-col="hs"]').checked,
+        weights: document.querySelector('.opt-col[data-col="weights"]').checked,
+        pack: document.querySelector('.opt-col[data-col="pack"]').checked,
+        ctr: document.querySelector('.opt-col[data-col="ctr"]').checked,
+      };
+      ['hs','weights','pack','ctr'].forEach(k=>{
+        document.querySelector(`#doc-products thead th.opt-${k}`)?.classList.toggle('hide', !show[k]);
+      });
+      [...tbody().rows].forEach(row=>{
+        const name = row.querySelector('.prod-name')?.value || '';
+        const grade = row.querySelector('.prod-grade')?.value || '';
+        const qty = parseFloat(row.querySelector('.prod-qty')?.value)||0;
+        const unit = row.querySelector('.prod-unit')?.value || '';
+        const hs = row.querySelector('.prod-hs')?.value || '';
+        const weights = row.querySelector('.prod-weights')?.value || '';
+        const pack = row.querySelector('.prod-pack')?.value || '';
+        const ctr = row.querySelector('.prod-ctr')?.value || '';
+        const price = parseFloat(row.querySelector('.prod-price')?.value)||0;
+        const total = qty*price;
+        subtotal += total;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${name}</td>
+          <td>${grade||'-'}</td>
+          <td class="text-center">${qty||'-'}</td>
+          <td class="text-center">${unit||'-'}</td>
+          <td class="text-center opt-hs ${show.hs?'':'hide'}">${hs||'-'}</td>
+          <td class="text-center opt-weights ${show.weights?'':'hide'}">${weights||'-'}</td>
+          <td class="text-center opt-pack ${show.pack?'':'hide'}">${pack||'-'}</td>
+          <td class="text-center opt-ctr ${show.ctr?'':'hide'}">${ctr||'-'}</td>
+          <td class="text-center">${money(price)}</td>
+          <td class="text-center">${money(total)}</td>
+        `;
+        docBody.appendChild(tr);
+      });
+      const discountPct = parseFloat(document.getElementById('discount').value)||0;
+      const taxPct = parseFloat(document.getElementById('tax').value)||0;
+      const discountVal = subtotal * (discountPct/100);
+      const afterDisc = subtotal - discountVal;
+      const taxVal = afterDisc * (taxPct/100);
+      const grand = afterDisc + taxVal;
+      document.getElementById('doc-subtotal').textContent = money(subtotal);
+      const rowDiscount = document.getElementById('row-discount');
+      const rowTax = document.getElementById('row-tax');
+      rowDiscount.classList.toggle('hide', !(discountPct>0));
+      rowTax.classList.toggle('hide', !(taxPct>0));
+      document.getElementById('doc-discount').textContent = money(discountVal);
+      document.getElementById('doc-tax').textContent = money(taxVal);
+      document.getElementById('doc-grand').textContent = money(grand);
+      const notes = document.getElementById('notes').value;
+      document.getElementById('doc-notes').textContent = notes || (document.getElementById('lang').value==='fr' ? 'Aucune note additionnelle.' : 'No additional notes.');
+      document.getElementById('doc-validity').textContent = document.getElementById('validity').value || '30';
+      const showBank = document.getElementById('toggleBank').checked;
+      const bVals = {
+        bankName: document.getElementById('bankName').value.trim(),
+        bankBranch: document.getElementById('bankBranch').value.trim(),
+        bankBenef: document.getElementById('bankBenef').value.trim(),
+        bankIban: document.getElementById('bankIban').value.trim(),
+        bankSwift: document.getElementById('bankSwift').value.trim(),
+        bankNote: document.getElementById('bankNote').value.trim(),
+      };
+      const anyBank = Object.values(bVals).some(v=>v);
+      const bankBox = document.getElementById('doc-bank');
+      if (showBank && anyBank){
+        bankBox.classList.remove('hidden');
+        document.getElementById('doc-bank-name').textContent = bVals.bankName;
+        document.getElementById('doc-bank-branch').textContent = bVals.bankBranch;
+        document.getElementById('doc-bank-benef').textContent = bVals.bankBenef;
+        document.getElementById('doc-bank-iban').textContent = bVals.bankIban;
+        document.getElementById('doc-bank-swift').textContent = bVals.bankSwift;
+        document.getElementById('doc-bank-note').textContent = bVals.bankNote;
+      } else {
+        bankBox.classList.add('hidden');
+      }
+      document.getElementById('form-section').classList.add('hidden');
+      document.getElementById('proforma-document').classList.remove('hidden');
+      document.getElementById('pdf-controls').classList.remove('hidden');
+      window.scrollTo(0,0);
+    }
+
+    function downloadPDF(){
+      const element = document.getElementById('proforma-document');
+      const opt = {
+        margin: [0.5, 0.7, 0.7, 0.7],
+        filename: `${document.getElementById('ref').value}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+      setTimeout(()=> html2pdf().set(opt).from(element).save(), 0);
+    }
+
+    function backToForm(){
+      document.getElementById('proforma-document').classList.add('hidden');
+      document.getElementById('pdf-controls').classList.add('hidden');
+      document.getElementById('form-section').classList.remove('hidden');
+      window.scrollTo(0,0);
+    }
+
+    // ===== Init / Events =====
+    function init(){
+      applyI18N();
+      document.getElementById('ref').value = generateRef();
+      document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
+      addRow(); addRow();
+      document.getElementById('lang').addEventListener('change', applyI18N);
+      document.getElementById('addRowBtn').addEventListener('click', ()=>addRow());
+      document.querySelectorAll('.opt-col').forEach(chk=>chk.addEventListener('change', updateOptionalColsVisibility));
+      document.getElementById('genBtn').addEventListener('click', generateDocument);
+      document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
+      document.getElementById('editBtn').addEventListener('click', backToForm);
+      document.getElementById('toggleBank').addEventListener('change', (e)=>{
+        document.getElementById('bankBox').classList.toggle('hide', !e.target.checked);
+      });
+      document.getElementById('resetBtn').addEventListener('click', ()=>{
+        tbody().innerHTML = '';
+        addRow();
+      });
+    }
+    window.onload = init;
+  </script>
+</body>
+</html>
