@@ -98,12 +98,17 @@
       <!-- Vendeur -->
       <div class="border rounded p-4">
         <h3 class="font-semibold text-blue-800 mb-3" data-i18n="seller.title">Vendeur / Exportateur</h3>
-        <div class="space-y-1 text-sm">
-          <p><strong>SenHarvest LLC</strong></p>
-          <p>1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</p>
-          <p>Tel: +1 819 319 8464</p>
-          <p>Email: abdou.lo@senharvestllc.com</p>
-          <p>RC/Tax ID: SN-DK-XXXXXXX</p>
+        <div class="space-y-3">
+          <input type="text" placeholder="Entreprise" id="sellerCorp" class="w-full border p-2 rounded" value="SenHarvest LLC" required />
+          <textarea placeholder="Adresse" id="sellerAddress" class="w-full border p-2 rounded" rows="2" required>1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</textarea>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="tel" placeholder="Téléphone" id="sellerPhone" class="w-full border p-2 rounded" value="+1 819 319 8464" />
+            <input type="email" placeholder="Email" id="sellerEmail" class="w-full border p-2 rounded" value="abdou.lo@senharvestllc.com" />
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" placeholder="RC/Tax ID" id="sellerTax" class="w-full border p-2 rounded" value="SN-DK-XXXXXXX" />
+            <input type="text" placeholder="Nom du signataire (ex: Mr. Abdou Lahat Lo)" id="sellerSignName" class="w-full border p-2 rounded" value="Mr. Abdou Lahat Lo" />
+          </div>
         </div>
 
         <!-- Infos bancaires (facultatif) -->
@@ -229,11 +234,11 @@
       <!-- Vendeur -->
       <div class="bg-blue-50 p-5 rounded border">
         <h3 class="font-semibold text-blue-800 mb-2" data-i18n="seller.block">SELLER / EXPORTER</h3>
-        <p><strong>Name:</strong> SenHarvest LLC</p>
-        <p><strong>Address:</strong> 1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</p>
-        <p><strong>Tel:</strong> +1 819 319 8464</p>
-        <p><strong>Email:</strong> abdou.lo@senharvestllc.com</p>
-        <p><strong>RC/Tax ID:</strong> SN-DK-XXXXXXX</p>
+        <p><strong>Name:</strong> <span id="doc-seller-corp">SenHarvest LLC</span></p>
+        <p><strong>Address:</strong> <span id="doc-seller-address">1209 MOUNTAIN ROAD PL NE STE N, ALBUQUERQUE, NM 87110, USA</span></p>
+        <p><strong>Tel:</strong> <span id="doc-seller-phone">+1 819 319 8464</span></p>
+        <p><strong>Email:</strong> <span id="doc-seller-email">abdou.lo@senharvestllc.com</span></p>
+        <p><strong>RC/Tax ID:</strong> <span id="doc-seller-tax">SN-DK-XXXXXXX</span></p>
 
         <!-- Infos bancaires (affichage si rempli) -->
         <div id="doc-bank" class="mt-3 hidden">
@@ -313,12 +318,12 @@
 
     <!-- Signatures -->
     <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 text-center avoid-break" id="signatures-section">
-      <div>
-        <p class="font-semibold" data-i18n="sign.seller">Authorized Signature – Seller</p>
-        <div class="signature-line"></div>
-        <p>Mr. Abdou Lahat Lo</p>
-        <p class="text-sm muted">Manager – SenHarvest LLC</p>
-      </div>
+              <div>
+          <p class="font-semibold" data-i18n="sign.seller">Authorized Signature – Seller</p>
+          <div class="signature-line"></div>
+          <p id="doc-seller-sign-name">Mr. Abdou Lahat Lo</p>
+          <p class="text-sm muted">Manager – <span id="doc-seller-sign-corp">SenHarvest LLC</span></p>
+        </div>
       <div id="buyer-signature-block">
         <p class="font-semibold" data-i18n="sign.buyer">Authorized Signature – Buyer</p>
         <div class="signature-line"></div>
@@ -459,6 +464,15 @@
       
       document.getElementById('doc-ref').textContent = document.getElementById('ref').value;
       document.getElementById('doc-date').textContent = document.getElementById('issueDate').value;
+      
+      // Seller info
+      document.getElementById('doc-seller-corp').textContent = document.getElementById('sellerCorp').value;
+      document.getElementById('doc-seller-address').textContent = document.getElementById('sellerAddress').value;
+      document.getElementById('doc-seller-phone').textContent = document.getElementById('sellerPhone').value;
+      document.getElementById('doc-seller-email').textContent = document.getElementById('sellerEmail').value;
+      document.getElementById('doc-seller-tax').textContent = document.getElementById('sellerTax').value;
+      document.getElementById('doc-seller-sign-name').textContent = document.getElementById('sellerSignName').value;
+      document.getElementById('doc-seller-sign-corp').textContent = document.getElementById('sellerCorp').value;
       
       // Update title
       document.querySelector('[data-i18n="doc.title"]').textContent = isDevis ? 'QUOTATION / DEVIS' : 'PROFORMA INVOICE';
