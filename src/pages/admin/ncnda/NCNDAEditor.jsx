@@ -81,17 +81,19 @@ export default function NCNDAEditor() {
           ol, ul { page-break-inside: avoid; }
           li { page-break-inside: avoid; }
         }
+
         #ncnda-document ol { 
-          list-style-position: inside;   /* ✅ numéro aligné avec le texte */
-          margin-left: 0; 
-          padding-left: 1rem;            /* espace uniforme */
-          counter-reset: none;
+          list-style-type: decimal;       /* numéros classiques */
+          list-style-position: outside;   /* numéros dans la marge */
+          margin: 0; 
+          padding-left: 2.2rem;           /* espace uniforme pour aligner le texte */
         }
+
         #ncnda-document li { 
-          margin-bottom: 0.8rem; 
-          text-indent: 0;                /* pas de retrait supplémentaire */
-          display: list-item;
-          line-height: 1.5;              /* améliore la lisibilité */
+          margin-bottom: 1rem; 
+          padding-left: 0.2rem;           /* léger espace après le numéro */
+          text-indent: 0;                 /* empêche le décalage de la première ligne */
+          line-height: 1.5;
         }
       `}</style>
 
