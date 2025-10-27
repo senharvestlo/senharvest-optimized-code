@@ -78,22 +78,20 @@ export default function NCNDAEditor() {
       <style>{`
         @media print {
           .avoid-break { page-break-inside: avoid; }
-          ol, ul { page-break-inside: avoid; }
-          li { page-break-inside: avoid; }
         }
 
-        #ncnda-document ol { 
-          list-style-type: decimal;       /* numéros classiques */
-          list-style-position: outside;   /* numéros dans la marge */
-          margin: 0; 
-          padding-left: 2.2rem;           /* espace uniforme pour aligner le texte */
+        #ncnda-document ol {
+          list-style-type: decimal;
+          list-style-position: inside; /* Numéro aligné avec texte */
+          margin-left: 0; 
+          padding-left: 0; 
         }
 
-        #ncnda-document li { 
+        #ncnda-document li {
           margin-bottom: 1rem; 
-          padding-left: 0.2rem;           /* léger espace après le numéro */
-          text-indent: 0;                 /* empêche le décalage de la première ligne */
-          line-height: 1.5;
+          text-indent: -1.2em;  /* Ramène le texte au niveau du numéro */
+          padding-left: 1.2em;  /* Espace avant le texte */
+          line-height: 1.6;     /* Aération */
         }
       `}</style>
 
@@ -172,60 +170,60 @@ export default function NCNDAEditor() {
         </p>
 
         {/* Clauses ICC officielles (1-12) */}
-        <ol className="list-decimal ml-6 space-y-4 mt-6 avoid-break">
-          <li className="text-justify leading-relaxed avoid-break">
-            The parties hereto and/or their affiliates, which includes, but is not limited to, any licensors, contractors, buyer's appointed consignee(s), suppliers, manufacturers, producers, wholesalers, retailers, customers, clients, financial sources, representatives, agents or consultants, of what-so-ever nature shall not, in any manner solicit and/or accept any business from sources that have been made available by and through the parties hereto, nor in any manner shall access, contact solicit and/or conduct any transaction with such said sources, without the expressed and specific permission of the party who made such said sources available.
-          </li>
+        <div className="mt-6 avoid-break space-y-4">
+          <div className="text-justify leading-relaxed">
+            <strong>1.</strong> The parties hereto and/or their affiliates, which includes, but is not limited to, any licensors, contractors, buyer's appointed consignee(s), suppliers, manufacturers, producers, wholesalers, retailers, customers, clients, financial sources, representatives, agents or consultants, of what-so-ever nature shall not, in any manner solicit and/or accept any business from sources that have been made available by and through the parties hereto, nor in any manner shall access, contact solicit and/or conduct any transaction with such said sources, without the expressed and specific permission of the party who made such said sources available.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            The Parties shall maintain complete confidentiality regarding each other's business and/or their affiliates and shall only disclose knowledge pertaining to these specifically named Parties as permitted by the concerned Party, unless agreed and granted an expressed written permission of and by the Party whom made the source available.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>2.</strong> The Parties shall maintain complete confidentiality regarding each other's business and/or their affiliates and shall only disclose knowledge pertaining to these specifically named Parties as permitted by the concerned Party, unless agreed and granted an expressed written permission of and by the Party whom made the source available.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            The Parties shall not in any way whatsoever circumvent each other and/or attempt such circumvention of each other and/or any of the Parties involved in any of the transactions the Parties wish to enter and to the best of their abilities shall ensure that the original transaction codes, data and proprietary information established are not altered.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>3.</strong> The Parties shall not in any way whatsoever circumvent each other and/or attempt such circumvention of each other and/or any of the Parties involved in any of the transactions the Parties wish to enter and to the best of their abilities shall ensure that the original transaction codes, data and proprietary information established are not altered.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            The Parties shall not disclose any contact revealed by either Party to any third Parties as they fully recognized such information and contact(s) of the respective Party, and shall not enter into direct and/or indirect offers, negotiations and/or transaction with such contacts revealed by the other Party who made the contact(s) available.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>4.</strong> The Parties shall not disclose any contact revealed by either Party to any third Parties as they fully recognized such information and contact(s) of the respective Party, and shall not enter into direct and/or indirect offers, negotiations and/or transaction with such contacts revealed by the other Party who made the contact(s) available.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            In the event of circumvention by any of the undersigned Parties, whether direct and/or indirect, the circumvented Party shall be entitled to a legal monetary compensation equal to the maximum service it should realize from such a transaction, plus any and all expenses, including any and all legal fees incurred in lieu of the recovery of such compensation.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>5.</strong> In the event of circumvention by any of the undersigned Parties, whether direct and/or indirect, the circumvented Party shall be entitled to a legal monetary compensation equal to the maximum service it should realize from such a transaction, plus any and all expenses, including any and all legal fees incurred in lieu of the recovery of such compensation.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            All considerations, benefits, bonuses, participation, fees, and/or commissions received as a result of the contributions of the Parties to this agreement, relating to any and all transactions shall be allocated and distributed as mutually agreed. Specific arrangements, fee for each transaction shall be made available and/or submitted to the recipient on the very day due and payable as per each and every transaction, unless otherwise agreed.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>6.</strong> All considerations, benefits, bonuses, participation, fees, and/or commissions received as a result of the contributions of the Parties to this agreement, relating to any and all transactions shall be allocated and distributed as mutually agreed. Specific arrangements, fee for each transaction shall be made available and/or submitted to the recipient on the very day due and payable as per each and every transaction, unless otherwise agreed.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            This agreement is valid for Three (3) years from the date of signature, for any and all transactions between the Parties therein, with renewal to be agreed upon between the signatories.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>7.</strong> This agreement is valid for Three (3) years from the date of signature, for any and all transactions between the Parties therein, with renewal to be agreed upon between the signatories.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            It is further agreed that any controversy, claims, and/or dispute arising out of and/or relating to any part of the whole of this agreement or breach thereof and which is not settled between the signatories themselves, shall be settled and binding by and through arbitration in accordance with the rules and through the institution of the International Chamber of Commerce. Any decision and/or award made by the arbitrators shall be final, conclusive and binding for the Parties and enforceable in the Court of Law in the Country of choice of an award by the arbitrators.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>8.</strong> It is further agreed that any controversy, claims, and/or dispute arising out of and/or relating to any part of the whole of this agreement or breach thereof and which is not settled between the signatories themselves, shall be settled and binding by and through arbitration in accordance with the rules and through the institution of the International Chamber of Commerce. Any decision and/or award made by the arbitrators shall be final, conclusive and binding for the Parties and enforceable in the Court of Law in the Country of choice of an award by the arbitrators.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            This Agreement shall be binding upon the Parties hereto and in the case of individual parties, their respective heirs, administrators and executors and in the case of all corporate Parties, their successors and assigns.
-            <ul className="list-disc ml-6 mt-2 avoid-break">
+          <div className="text-justify leading-relaxed">
+            <strong>9.</strong> This Agreement shall be binding upon the Parties hereto and in the case of individual parties, their respective heirs, administrators and executors and in the case of all corporate Parties, their successors and assigns.
+            <ul className="list-disc ml-6 mt-2">
               <li>The non-circumvention damages, i.e., the total commissions, fees, or profits which would have been due; and,</li>
               <li>All loss sustained by the non-defaulting party by reason of such breach; and,</li>
               <li>All expenses incurred in enforcing any legal remedy rights based upon or arising out of this Agreement.</li>
             </ul>
-          </li>
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            Signature of this agreement shall be deemed to be an executed agreement enforceable and admissible for all purposes as may be necessary under the terms of this agreement.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>10.</strong> Signature of this agreement shall be deemed to be an executed agreement enforceable and admissible for all purposes as may be necessary under the terms of this agreement.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            All signatories hereto acknowledge that they have read and each Party fully understands the terms and conditions contained in this Agreement and by their initials and signature hereby unconditionally agree to its terms as of the date noted herein.
-          </li>
+          <div className="text-justify leading-relaxed">
+            <strong>11.</strong> All signatories hereto acknowledge that they have read and each Party fully understands the terms and conditions contained in this Agreement and by their initials and signature hereby unconditionally agree to its terms as of the date noted herein.
+          </div>
 
-          <li className="text-justify leading-relaxed avoid-break">
-            The purpose of this instrument is to establish an internationally recognized Non-Circumvention, Non-Disclosure, and Working Agreement between the participating Parties. This and future transactions shall be conducted under the guidelines of the International Chamber of Commerce.
-          </li>
-        </ol>
+          <div className="text-justify leading-relaxed">
+            <strong>12.</strong> The purpose of this instrument is to establish an internationally recognized Non-Circumvention, Non-Disclosure, and Working Agreement between the participating Parties. This and future transactions shall be conducted under the guidelines of the International Chamber of Commerce.
+          </div>
+        </div>
 
         {/* Clause de fin sur langues et copies électroniques */}
         <p className="mt-6 text-justify leading-relaxed avoid-break">
@@ -247,11 +245,11 @@ export default function NCNDAEditor() {
           <p className="text-sm text-justify leading-relaxed">
             Electronic document transmissions (EDT) shall be deemed valid and enforceable in respect of any provisions of this Contract. As applicable, this agreement shall be:
           </p>
-          <ol className="list-decimal ml-6 mt-2 text-sm text-justify leading-relaxed space-y-2 avoid-break">
-            <li>Incorporate U.S. Public Law 106-229, "Electronic Signatures in Global and National Commerce Act" as well other applicable law conforming to the UNCITRAL Model Law on Electronic Signatures (2001) and</li>
-            <li>ELECTRONIC COMMERCE AGREEMENT (ECE/TRADE/257, Geneva, May 2000) adopted by the United Nations Centre for Trade Facilitation and Electronic Business (UN/CEFACT).</li>
-            <li>EDT documents shall be subject to European Council Directive No. 95/46/EEC, as applicable. Either Party may request hard copy of any document that has been previously transmitted by electronic means provided however, that any such request shall in no manner delay the Parties from performing their respective obligations and duties under EDT instruments.</li>
-          </ol>
+          <div className="mt-2 text-sm text-justify leading-relaxed space-y-2">
+            <div><strong>1.</strong> Incorporate U.S. Public Law 106-229, "Electronic Signatures in Global and National Commerce Act" as well other applicable law conforming to the UNCITRAL Model Law on Electronic Signatures (2001) and</div>
+            <div><strong>2.</strong> ELECTRONIC COMMERCE AGREEMENT (ECE/TRADE/257, Geneva, May 2000) adopted by the United Nations Centre for Trade Facilitation and Electronic Business (UN/CEFACT).</div>
+            <div><strong>3.</strong> EDT documents shall be subject to European Council Directive No. 95/46/EEC, as applicable. Either Party may request hard copy of any document that has been previously transmitted by electronic means provided however, that any such request shall in no manner delay the Parties from performing their respective obligations and duties under EDT instruments.</div>
+          </div>
         </div>
 
         {/* SIGNATURE PAGE */}
