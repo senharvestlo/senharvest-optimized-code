@@ -78,8 +78,8 @@ export default function PSAEditor() {
 
   const durationFR = useMemo(()=>{
     return form.indefinite
-      ? 'Le présent Accord est valable pour une durée indéterminée, renouvelable automatiquement sauf résiliation d\'un commun accord par écrit.'
-      : `Le présent Accord est valable pour une durée de ${form.years} an(s), renouvelable automatiquement sauf résiliation d\'un commun accord par écrit.`;
+      ? 'Le présent Accord est valable pour une durée indéterminée, renouvelable automatiquement sauf résiliation d’un commun accord par écrit.'
+      : `Le présent Accord est valable pour une durée de ${form.years} an(s), renouvelable automatiquement sauf résiliation d’un commun accord par écrit.`;
   }, [form.indefinite, form.years]);
 
   const onDownload = async () => {

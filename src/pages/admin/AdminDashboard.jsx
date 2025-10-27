@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import ProformaHTML from '../../components/docs/ProformaHTML';
 import QuotationHTML from '../../components/docs/QuotationHTML';
-import NCNDALite from '../../components/docs/NCNDALite';
+import NCNDAEditor from './ncnda/NCNDAEditor';
 import PSAEditor from './psa/PSAEditor';
 import AdminProductSpecs from '../../components/admin/AdminProductSpecs';
 
@@ -66,7 +66,7 @@ export default function AdminDashboard() {
           <div className="p-6">
             {tab==='proforma'  && <ProformaHTML />}
             {tab==='quotation' && <QuotationHTML />}
-            {tab==='ncnda'     && <NCNDALite />}
+            {tab==='ncnda'     && <NCNDAEditor />}
             {tab==='psa'       && <PSAEditor />}
             {tab==='specs'     && <AdminProductSpecs />}
           </div>
