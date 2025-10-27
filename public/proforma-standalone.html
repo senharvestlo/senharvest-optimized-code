@@ -217,7 +217,7 @@
       <button type="button" id="downloadBtnForm" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow">
         📥 Télécharger PDF
       </button>
-      <button type="reset" id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
+      <button type="button" id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
         🗑️ <span data-i18n="actions.reset">Réinitialiser</span>
       </button>
     </div>
@@ -612,7 +612,14 @@
     }
 
     function showPreview(){
-      generateDocument();
+      try {
+        console.log('Generating preview...');
+        generateDocument();
+        console.log('Preview generated successfully');
+      } catch(error) {
+        console.error('Error generating preview:', error);
+        alert('Erreur lors de la génération de l\'aperçu: ' + error.message);
+      }
     }
 
     function downloadPDFDirect(){
@@ -659,7 +666,9 @@
       document.getElementById('ref').value = generateRef();
       document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
       addRow(); addRow();
+      
       document.getElementById('lang').addEventListener('change', applyI18N);
+      
       document.getElementById('docType').addEventListener('change', ()=>{
         document.getElementById('ref').value = generateRef();
         const isDevis = document.getElementById('docType').value === 'devis';
@@ -688,21 +697,61 @@
           }
         }
       });
+      
       document.getElementById('addRowBtn').addEventListener('click', ()=>addRow());
+      
       document.querySelectorAll('.opt-col').forEach(chk=>chk.addEventListener('change', updateOptionalColsVisibility));
-      document.getElementById('previewBtn').addEventListener('click', showPreview);
-      document.getElementById('downloadBtnForm').addEventListener('click', downloadPDFDirect);
-      document.getElementById('downloadBtnPreview').addEventListener('click', downloadPDF);
-      document.getElementById('editBtn').addEventListener('click', backToForm);
+      
+      document.getElementById('previewBtn').addEventListener('click', (e)=>{
+        e.preventDefault();
+        console.log('Preview clicked');
+        showPreview();
+      });
+      
+      document.getElementById('downloadBtnForm').addEventListener('click', (e)=>{
+        e.preventDefault();
+        console.log('Download from form clicked');
+        downloadPDFDirect();
+      });
+      
+      document.getElementById('downloadBtnPreview').addEventListener('click', (e)=>{
+        e.preventDefault();
+        console.log('Download from preview clicked');
+        downloadPDF();
+      });
+      
+      document.getElementById('editBtn').addEventListener('click', (e)=>{
+        e.preventDefault();
+        console.log('Edit clicked');
+        backToForm();
+      });
+      
       document.getElementById('toggleBank').addEventListener('change', (e)=>{
         document.getElementById('bankBox').classList.toggle('hide', !e.target.checked);
       });
-      document.getElementById('resetBtn').addEventListener('click', ()=>{
+      
+      document.getElementById('resetBtn').addEventListener('click', (e)=>{
+        e.preventDefault();
+        console.log('Reset clicked');
         tbody().innerHTML = '';
-        addRow();
+        addRow(); addRow();
+        // Reset form fields
+        document.getElementById('buyerName').value = '';
+        document.getElementById('buyerCorp').value = '';
+        document.getElementById('buyerAddress').value = '';
+        document.getElementById('buyerPhone').value = '';
+        document.getElementById('buyerEmail').value = '';
+        document.getElementById('buyerTax').value = '';
+        document.getElementById('buyerContact').value = '';
+        document.getElementById('notes').value = '';
       });
     }
-    window.onload = init;
+    
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   </script>
 </body>
 </html>
