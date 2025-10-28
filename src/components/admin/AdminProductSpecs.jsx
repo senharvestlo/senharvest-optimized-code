@@ -9,18 +9,25 @@ import {
   imageToBase64,
   isValidImageFile,
   productKeyExists,
+  hideProduct,
+  showProduct,
+  isProductHidden,
+  getHiddenProducts,
 } from "../../services/productService";
 
 export default function AdminProductSpecs({ lang = "fr" }) {
   const [activeTab, setActiveTab] = useState("specs"); // "specs" ou "products"
   const [customProducts, setCustomProducts] = useState([]);
+  const [hiddenProducts, setHiddenProducts] = useState([]);
+  const [showHiddenSection, setShowHiddenSection] = useState(false);
 
-  // Charger les produits personnalisés
+  // Charger les produits personnalisés et masqués
   useEffect(() => {
     setCustomProducts(getAllProducts());
+    setHiddenProducts(getHiddenProducts());
   }, []);
 
-  // Combiner BASE_PRODUCTS et produits personnalisés
+  // Combiner BASE_PRODUCTS et produits personnalisés (sans les masqués)
   const allProducts = useMemo(
     () => {
       const baseProducts = BASE_PRODUCTS.map((p) => ({
@@ -33,10 +40,28 @@ export default function AdminProductSpecs({ lang = "fr" }) {
         displayName: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
         isCustom: true,
       }));
-      return [...baseProducts, ...custom];
+      // Filtrer les produits masqués
+      const hidden = getHiddenProducts();
+      return [...baseProducts, ...custom].filter((p) => !hidden.includes(p.key));
     },
-    [lang, customProducts]
+    [lang, customProducts, hiddenProducts]
   );
+
+  // Produits masqués pour affichage
+  const hiddenProductsList = useMemo(() => {
+    const hidden = getHiddenProducts();
+    const baseProducts = BASE_PRODUCTS.map((p) => ({
+      ...p,
+      displayName: PRODUCT_NAMES[lang]?.[p.key] || p.key,
+      isCustom: false,
+    }));
+    const custom = customProducts.map((p) => ({
+      ...p,
+      displayName: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
+      isCustom: true,
+    }));
+    return [...baseProducts, ...custom].filter((p) => hidden.includes(p.key));
+  }, [lang, customProducts, hiddenProducts]);
 
   const [selectedKey, setSelectedKey] = useState(allProducts[0]?.key || "");
   const [specs, setSpecsState] = useState([]);
@@ -171,6 +196,21 @@ export default function AdminProductSpecs({ lang = "fr" }) {
     deleteCustomProduct(productId);
     setCustomProducts(getAllProducts());
     alert(lang === "fr" ? "Produit supprimé avec succès!" : "Product deleted successfully!");
+  };
+
+  const handleHideProduct = (productKey, productName) => {
+    if (!window.confirm(lang === "fr" ? `Masquer "${productName}" ? Ce produit ne sera plus visible sur le site mais pourra être réactivé.` : `Hide "${productName}"? This product will no longer be visible on the site but can be reactivated.`)) {
+      return;
+    }
+    hideProduct(productKey);
+    setHiddenProducts(getHiddenProducts());
+    alert(lang === "fr" ? "Produit masqué avec succès!" : "Product hidden successfully!");
+  };
+
+  const handleShowProduct = (productKey, productName) => {
+    showProduct(productKey);
+    setHiddenProducts(getHiddenProducts());
+    alert(lang === "fr" ? `Produit "${productName}" réactivé avec succès!` : `Product "${productName}" reactivated successfully!`);
   };
 
   const startEditProduct = (product) => {
@@ -371,11 +411,123 @@ export default function AdminProductSpecs({ lang = "fr" }) {
             </div>
           </div>
 
-          {/* Liste des produits personnalisés */}
+          {/* Liste de tous les produits actifs */}
           <div className="rounded-lg border p-4">
-            <h2 className="text-lg font-semibold mb-4">
-              {lang === "fr" ? "Produits personnalisés" : "Custom products"}
-            </h2>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">
+                {lang === "fr" ? "Tous les produits actifs" : "All active products"}
+              </h2>
+              <button
+                onClick={() => setShowHiddenSection(!showHiddenSection)}
+                className="text-sm rounded-md border px-3 py-1 text-gray-600 hover:bg-gray-50"
+              >
+                {showHiddenSection 
+                  ? (lang === "fr" ? "Masquer les produits masqués" : "Hide hidden products")
+                  : (lang === "fr" ? "Voir les produits masqués" : "View hidden products")
+                } ({hiddenProductsList.length})
+              </button>
+            </div>
+            
+            {/* Liste des produits masqués */}
+            {showHiddenSection && hiddenProductsList.length > 0 && (
+              <div className="mb-6 p-4 bg-gray-50 rounded border border-yellow-200">
+                <h3 className="font-semibold text-gray-700 mb-3">
+                  {lang === "fr" ? "Produits masqués" : "Hidden products"}
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {hiddenProductsList.map((product) => (
+                    <div key={product.key} className="border rounded-lg p-3 bg-white">
+                      {product.img && (
+                        <img src={product.img} alt={product.nameFR || product.key} className="w-full h-24 object-cover rounded mb-2" />
+                      )}
+                      <h4 className="font-semibold text-sm">{product.displayName || product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key}</h4>
+                      <p className="text-xs text-gray-500 mb-2">{product.origin}</p>
+                      <button
+                        onClick={() => handleShowProduct(product.key, product.displayName || product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key)}
+                        className="text-xs rounded-md border border-green-300 text-green-700 px-2 py-1 hover:bg-green-50 w-full"
+                      >
+                        {lang === "fr" ? "Réactiver" : "Reactivate"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Liste des produits personnalisés */}
+            {customProducts.length === 0 && allProducts.filter(p => p.isCustom).length === 0 && (
+              <p className="text-sm text-gray-500">
+                {lang === "fr" ? "Aucun produit personnalisé." : "No custom products."}
+              </p>
+            )}
+            
+            {allProducts.filter(p => p.isCustom).length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-gray-700 mb-3">
+                  {lang === "fr" ? "Produits personnalisés" : "Custom products"}
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allProducts.filter(p => p.isCustom).map((product) => (
+                    <div key={product.id} className="border rounded-lg p-4">
+                      {product.img && (
+                        <img src={product.img} alt={product.nameFR} className="w-full h-32 object-cover rounded mb-2" />
+                      )}
+                      <h3 className="font-semibold">{product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key}</h3>
+                      <p className="text-sm text-gray-600">{product.origin}</p>
+                      <div className="mt-2 flex gap-2 flex-wrap">
+                        <button
+                          onClick={() => startEditProduct(product)}
+                          className="text-sm rounded-md border px-3 py-1"
+                        >
+                          {lang === "fr" ? "Modifier" : "Edit"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="text-sm rounded-md border border-red-300 text-red-600 px-3 py-1"
+                        >
+                          {lang === "fr" ? "Supprimer" : "Delete"}
+                        </button>
+                        <button
+                          onClick={() => handleHideProduct(product.key, product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key)}
+                          className="text-sm rounded-md border border-yellow-300 text-yellow-700 px-3 py-1"
+                        >
+                          {lang === "fr" ? "Masquer" : "Hide"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Liste des produits de base */}
+            {allProducts.filter(p => !p.isCustom).length > 0 && (
+              <div>
+                <h3 className="font-semibold text-gray-700 mb-3">
+                  {lang === "fr" ? "Produits de base" : "Base products"}
+                </h3>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allProducts.filter(p => !p.isCustom).map((product) => (
+                    <div key={product.key} className="border rounded-lg p-4">
+                      {product.img && (
+                        <img src={product.img} alt={product.displayName} className="w-full h-32 object-cover rounded mb-2" />
+                      )}
+                      <h3 className="font-semibold">{product.displayName}</h3>
+                      <p className="text-sm text-gray-600">{product.origin}</p>
+                      <div className="mt-2">
+                        <button
+                          onClick={() => handleHideProduct(product.key, product.displayName)}
+                          className="text-sm rounded-md border border-yellow-300 text-yellow-700 px-3 py-1 w-full"
+                        >
+                          {lang === "fr" ? "Masquer" : "Hide"}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
             {customProducts.length === 0 ? (
               <p className="text-sm text-gray-500">
                 {lang === "fr" ? "Aucun produit personnalisé." : "No custom products."}

@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
-import { getAllProducts } from '../../services/productService';
+import { getAllProducts, isProductHidden } from '../../services/productService';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
 import ProductSpecsModal from '../products/ProductSpecsModal';
@@ -21,20 +21,24 @@ function Products({ t, lang, onOpenForm }) {
   }, []);
 
   const products = useMemo(() => {
-    // Produits de base
-    const base = BASE_PRODUCTS.map((p) => ({
-      ...p,
-      name: PRODUCT_NAMES[lang][p.key],
-      cat: lang === "fr" ? p.catFR : p.catEN,
-    }));
+    // Produits de base (non masqués)
+    const base = BASE_PRODUCTS
+      .filter((p) => !isProductHidden(p.key))
+      .map((p) => ({
+        ...p,
+        name: PRODUCT_NAMES[lang][p.key],
+        cat: lang === "fr" ? p.catFR : p.catEN,
+      }));
     
-    // Produits personnalisés
-    const custom = customProducts.map((p) => ({
-      ...p,
-      id: p.id || Date.now(),
-      name: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
-      cat: lang === "fr" ? p.catFR : p.catEN,
-    }));
+    // Produits personnalisés (non masqués)
+    const custom = customProducts
+      .filter((p) => !isProductHidden(p.key))
+      .map((p) => ({
+        ...p,
+        id: p.id || Date.now(),
+        name: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
+        cat: lang === "fr" ? p.catFR : p.catEN,
+      }));
     
     return [...base, ...custom];
   }, [lang, customProducts]);

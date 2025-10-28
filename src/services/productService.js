@@ -118,3 +118,66 @@ export function productKeyExists(key, excludeId = null) {
   return customProducts.some((p) => p.key === key && p.id !== excludeId);
 }
 
+// ===== GESTION DES PRODUITS MASQUÉS =====
+const LS_HIDDEN_PRODUCTS_KEY = "senharvest_hidden_products_v1";
+
+/**
+ * Lit la liste des clés de produits masqués
+ */
+function _readHiddenProducts() {
+  try {
+    const raw = localStorage.getItem(LS_HIDDEN_PRODUCTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Écrit la liste des produits masqués
+ */
+function _writeHiddenProducts(hiddenKeys) {
+  try {
+    localStorage.setItem(LS_HIDDEN_PRODUCTS_KEY, JSON.stringify(hiddenKeys));
+  } catch (e) {
+    console.error("Erreur lors de la sauvegarde des produits masqués:", e);
+  }
+}
+
+/**
+ * Masque un produit (par sa clé)
+ */
+export function hideProduct(productKey) {
+  const hidden = _readHiddenProducts();
+  if (!hidden.includes(productKey)) {
+    hidden.push(productKey);
+    _writeHiddenProducts(hidden);
+  }
+  return true;
+}
+
+/**
+ * Affiche un produit masqué (par sa clé)
+ */
+export function showProduct(productKey) {
+  const hidden = _readHiddenProducts();
+  const filtered = hidden.filter((key) => key !== productKey);
+  _writeHiddenProducts(filtered);
+  return true;
+}
+
+/**
+ * Vérifie si un produit est masqué
+ */
+export function isProductHidden(productKey) {
+  const hidden = _readHiddenProducts();
+  return hidden.includes(productKey);
+}
+
+/**
+ * Récupère la liste des produits masqués
+ */
+export function getHiddenProducts() {
+  return _readHiddenProducts();
+}
+
