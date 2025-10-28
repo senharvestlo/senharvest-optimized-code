@@ -528,38 +528,6 @@ export default function AdminProductSpecs({ lang = "fr" }) {
               </div>
             )}
           </div>
-            {customProducts.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                {lang === "fr" ? "Aucun produit personnalisé." : "No custom products."}
-              </p>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {customProducts.map((product) => (
-                  <div key={product.id} className="border rounded-lg p-4">
-                    {product.img && (
-                      <img src={product.img} alt={product.nameFR} className="w-full h-32 object-cover rounded mb-2" />
-                    )}
-                    <h3 className="font-semibold">{product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key}</h3>
-                    <p className="text-sm text-gray-600">{product.origin}</p>
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        onClick={() => startEditProduct(product)}
-                        className="text-sm rounded-md border px-3 py-1"
-                      >
-                        {lang === "fr" ? "Modifier" : "Edit"}
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProduct(product.id)}
-                        className="text-sm rounded-md border border-red-300 text-red-600 px-3 py-1"
-                      >
-                        {lang === "fr" ? "Supprimer" : "Delete"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       )}
 
