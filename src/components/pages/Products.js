@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { BASE_PRODUCTS, PRODUCT_NAMES } from '../../config/products';
+import { getAllProducts } from '../../services/productService';
 import { trackProductView, trackButtonClick } from '../../config/analytics';
 import { Container, SectionTitle, Badge, Button } from '../ui';
 import ProductSpecsModal from '../products/ProductSpecsModal';
@@ -12,15 +13,31 @@ function Products({ t, lang, onOpenForm }) {
   const [specModalOpen, setSpecModalOpen] = useState(false);
   const [specProductKey, setSpecProductKey] = useState(null);
   const [specProductName, setSpecProductName] = useState('');
+  const [customProducts, setCustomProducts] = useState([]);
 
-  const products = useMemo(() =>
-    BASE_PRODUCTS.map((p) => ({
+  // Charger les produits personnalisés
+  useEffect(() => {
+    setCustomProducts(getAllProducts());
+  }, []);
+
+  const products = useMemo(() => {
+    // Produits de base
+    const base = BASE_PRODUCTS.map((p) => ({
       ...p,
       name: PRODUCT_NAMES[lang][p.key],
       cat: lang === "fr" ? p.catFR : p.catEN,
-    })),
-    [lang]
-  );
+    }));
+    
+    // Produits personnalisés
+    const custom = customProducts.map((p) => ({
+      ...p,
+      id: p.id || Date.now(),
+      name: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
+      cat: lang === "fr" ? p.catFR : p.catEN,
+    }));
+    
+    return [...base, ...custom];
+  }, [lang, customProducts]);
 
   const getOriginColor = (origin) => {
     const colorMap = {
