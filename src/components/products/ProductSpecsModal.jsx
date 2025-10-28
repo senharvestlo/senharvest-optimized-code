@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { listSpecs } from '../../services/productSpecs';
+import { getSpecs } from '../../services/productSpecsService';
 
 /**
  * Modal pour afficher les spécifications d'un produit
@@ -15,36 +15,21 @@ export default function ProductSpecsModal({ isOpen, onClose, productKey, product
     }
   }, [isOpen, productKey]);
 
-  const loadSpecs = async () => {
+  const loadSpecs = () => {
     setLoading(true);
     setError('');
     try {
-      const specsList = await listSpecs({ productKey });
+      // Utiliser le nouveau service localStorage
+      const specsArray = getSpecs(productKey);
       
-      // Filtrer par langue si nécessaire
-      const filteredSpecs = specsList.filter(spec => 
-        !spec.lang || spec.lang === lang || spec.lang === 'fr'
-      );
-      
-      // Filtrer les spécifications vides (sans contenu utile)
-      const validSpecs = filteredSpecs.filter(spec => {
-        // Support pour l'ancienne structure (title, bullets, pdfNotes)
-        const hasOldTitle = spec.title && spec.title.trim() !== '';
-        const hasOldBullets = spec.bullets && spec.bullets.length > 0 && spec.bullets.some(b => b && b.trim() !== '');
-        const hasOldPdfNotes = spec.pdfNotes && spec.pdfNotes.trim() !== '';
-        const hasOldDescription = spec.description && spec.description.trim() !== '';
-        
-        // Support pour la nouvelle structure (sections, fields, summary)
-        const hasSections = spec.sections && spec.sections.length > 0 && spec.sections.some(s => s && (s.title || s.content));
-        const hasFields = spec.fields && Object.keys(spec.fields).length > 0;
-        const hasSummary = spec.summary && spec.summary.trim() !== '';
-        
-        return hasOldTitle || hasOldBullets || hasOldPdfNotes || hasOldDescription || hasSections || hasFields || hasSummary;
-      });
-      setSpecs(validSpecs);
+      if (specsArray && specsArray.length > 0) {
+        setSpecs(specsArray);
+      } else {
+        setSpecs([]);
+      }
     } catch (err) {
       console.error('Error loading specs:', err);
-      setError('Erreur lors du chargement des spécifications');
+      setError(lang === 'fr' ? 'Erreur lors du chargement des spécifications' : 'Error loading specifications');
     } finally {
       setLoading(false);
     }
@@ -111,106 +96,38 @@ export default function ProductSpecsModal({ isOpen, onClose, productKey, product
 
           {!loading && !error && specs.length > 0 && (
             <div className="space-y-6">
-              {specs.map((spec, index) => (
-                <div key={spec.id || index} className="border rounded-lg p-4">
-                  {/* Ancienne structure (title, bullets, pdfNotes) */}
-                  {spec.title && spec.title.trim() && (
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      {spec.title}
-                    </h3>
-                  )}
-                  
-                  {spec.bullets && spec.bullets.length > 0 && (
-                    <ul className="space-y-2">
-                      {spec.bullets
-                        .filter(bullet => bullet && bullet.trim() !== '')
-                        .map((bullet, bulletIndex) => (
-                        <li key={bulletIndex} className="flex items-start">
-                          <span className="text-green-600 mr-2">•</span>
-                          <span className="text-gray-700">{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-
-                  {spec.description && spec.description.trim() && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded">
-                      <h4 className="font-medium text-gray-900 mb-2">Description</h4>
-                      <p className="text-gray-700 text-sm">{spec.description}</p>
-                    </div>
-                  )}
-
-                  {spec.pdfNotes && spec.pdfNotes.trim() && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded">
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        {lang === 'fr' ? 'Notes complémentaires' : 'Additional notes'}
-                      </h4>
-                      <p className="text-gray-700 text-sm">{spec.pdfNotes}</p>
-                    </div>
-                  )}
-
-                  {/* Nouvelle structure (sections, fields, summary) */}
-                  {spec.sections && spec.sections.length > 0 && (
-                    <div className="space-y-4">
-                      {spec.sections
-                        .filter(section => section && (section.title || section.content))
-                        .map((section, sectionIndex) => (
-                        <div key={sectionIndex} className="border-l-4 border-green-500 pl-4">
-                          {section.title && (
-                            <h4 className="font-semibold text-gray-900 mb-2">{section.title}</h4>
-                          )}
-                          {section.content && (
-                            <p className="text-gray-700 text-sm">{section.content}</p>
-                          )}
-                          {section.items && section.items.length > 0 && (
-                            <ul className="mt-2 space-y-1">
-                              {section.items.map((item, itemIndex) => (
-                                <li key={itemIndex} className="flex items-start">
-                                  <span className="text-green-600 mr-2">•</span>
-                                  <span className="text-gray-700 text-sm">{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+              <div className="border rounded-lg p-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  {lang === 'fr' ? 'Spécifications techniques' : 'Technical specifications'}
+                </h3>
+                
+                {/* Structure simple [{label, value}] */}
+                <div className="space-y-3">
+                  {specs.map((spec, index) => (
+                    <div key={index} className="flex items-start border-b pb-3 last:border-b-0 last:pb-0">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-900 mb-1">
+                          {spec.label}
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {spec.fields && Object.keys(spec.fields).length > 0 && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded">
-                      <h4 className="font-medium text-gray-900 mb-3">
-                        {lang === 'fr' ? 'Spécifications techniques' : 'Technical specifications'}
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {Object.entries(spec.fields).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="font-medium text-gray-700">{key}:</span>
-                            <span className="text-gray-600">{value}</span>
-                          </div>
-                        ))}
+                        <div className="text-gray-700 text-sm">
+                          {spec.value}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  ))}
+                </div>
 
-                  {spec.summary && spec.summary.trim() && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded">
-                      <h4 className="font-medium text-gray-900 mb-2">
-                        {lang === 'fr' ? 'Résumé' : 'Summary'}
-                      </h4>
-                      <p className="text-gray-700 text-sm">{spec.summary}</p>
-                    </div>
-                  )}
-
-                  <div className="mt-3 text-xs text-gray-500">
+                {/* Date de mise à jour si disponible */}
+                {specs.updatedAt && (
+                  <div className="mt-4 text-xs text-gray-500">
                     {lang === 'fr' ? 'Dernière mise à jour' : 'Last updated'}: {
-                      spec.updatedAt?.toDate ? 
-                        spec.updatedAt.toDate().toLocaleDateString('fr-FR') :
-                        new Date(spec.updatedAt).toLocaleDateString('fr-FR')
+                      specs.updatedAt ? 
+                        new Date(specs.updatedAt).toLocaleDateString('fr-FR') :
+                        '—'
                     }
                   </div>
-                </div>
-              ))}
+                )}
+              </div>
             </div>
           )}
         </div>
