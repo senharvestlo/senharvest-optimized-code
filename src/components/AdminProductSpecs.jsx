@@ -30,7 +30,7 @@ export default function AdminProductSpecs({ lang = "fr" }) {
       }));
       const custom = customProducts.map((p) => ({
         ...p,
-        displayName: p[`name${lang.toUpperCase() === "FR" ? "FR" : "EN"}`] || p.key,
+        displayName: p[`name${lang === "fr" ? "FR" : "EN"}`] || p.key,
         isCustom: true,
       }));
       return [...baseProducts, ...custom];
@@ -387,7 +387,7 @@ export default function AdminProductSpecs({ lang = "fr" }) {
                     {product.img && (
                       <img src={product.img} alt={product.nameFR} className="w-full h-32 object-cover rounded mb-2" />
                     )}
-                    <h3 className="font-semibold">{product[`name${lang.toUpperCase() === "FR" ? "FR" : "EN"}`] || product.key}</h3>
+                    <h3 className="font-semibold">{product[`name${lang === "fr" ? "FR" : "EN"}`] || product.key}</h3>
                     <p className="text-sm text-gray-600">{product.origin}</p>
                     <div className="mt-2 flex gap-2">
                       <button
