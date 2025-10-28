@@ -203,13 +203,19 @@ export default function AdminProductSpecs({ lang = "fr" }) {
       return;
     }
     hideProduct(productKey);
-    setHiddenProducts(getHiddenProducts());
+    const updated = getHiddenProducts();
+    setHiddenProducts(updated);
+    // Recharger aussi les produits personnalisés au cas où
+    setCustomProducts(getAllProducts());
     alert(lang === "fr" ? "Produit masqué avec succès!" : "Product hidden successfully!");
   };
 
   const handleShowProduct = (productKey, productName) => {
     showProduct(productKey);
-    setHiddenProducts(getHiddenProducts());
+    const updated = getHiddenProducts();
+    setHiddenProducts(updated);
+    // Recharger aussi les produits personnalisés au cas où
+    setCustomProducts(getAllProducts());
     alert(lang === "fr" ? `Produit "${productName}" réactivé avec succès!` : `Product "${productName}" reactivated successfully!`);
   };
 
