@@ -442,7 +442,7 @@ export default function AdminProductSpecs({ lang = "fr" }) {
         </div>
 
         {specs.length === 0 ? (
-          <p className="text-sm text-gray-500">{lang === "fr" ? "Aucune spécification. Cliquez sur "Ajouter"." : "No specification yet. Click "Add"."}</p>
+          <p className="text-sm text-gray-500">{lang === "fr" ? "Aucune spécification. Cliquez sur \"Ajouter\"." : "No specification yet. Click \"Add\"."}</p>
         ) : (
           <div className="space-y-2">
             {specs.map((row, idx) => (

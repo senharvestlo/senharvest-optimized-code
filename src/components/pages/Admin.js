@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Button from '../ui/Button';
 import AdminTermsPDF from '../AdminTermsPDF.jsx';
 import AdminProforma from './AdminProforma.jsx';
-import AdminProductSpecs from '../AdminProductSpecs.jsx';
+import AdminProductSpecs from '../admin/AdminProductSpecs';
 // Admin simplifié sans Firebase
 import useLang from '../../hooks/useLang';
 import { generateTradePDF, generateTradePDFBlob } from '../../services/pdfService';
