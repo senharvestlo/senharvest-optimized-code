@@ -221,9 +221,6 @@
       <button type="button" id="downloadBtnForm" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow">
         📥 Télécharger PDF
       </button>
-      <button type="button" id="resetBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded">
-        🗑️ <span data-i18n="actions.reset">Réinitialiser</span>
-      </button>
     </div>
   </div>
 
@@ -732,22 +729,6 @@
       
       document.getElementById('toggleBank').addEventListener('change', (e)=>{
         document.getElementById('bankBox').classList.toggle('hide', !e.target.checked);
-      });
-      
-      document.getElementById('resetBtn').addEventListener('click', (e)=>{
-        e.preventDefault();
-        console.log('Reset clicked');
-        tbody().innerHTML = '';
-        addRow(); addRow();
-        // Reset form fields
-        document.getElementById('buyerName').value = '';
-        document.getElementById('buyerCorp').value = '';
-        document.getElementById('buyerAddress').value = '';
-        document.getElementById('buyerPhone').value = '';
-        document.getElementById('buyerEmail').value = '';
-        document.getElementById('buyerTax').value = '';
-        document.getElementById('buyerContact').value = '';
-        document.getElementById('notes').value = '';
       });
     }
     
