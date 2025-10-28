@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getSpecs } from '../../services/productSpecsService';
+import { getSpecs, listAllSpecs } from '../../services/productSpecsService';
 
 /**
  * Modal pour afficher les spécifications d'un produit
  */
 export default function ProductSpecsModal({ isOpen, onClose, productKey, productName, lang = 'fr' }) {
   const [specs, setSpecs] = useState([]);
+  const [updatedAt, setUpdatedAt] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -26,6 +27,12 @@ export default function ProductSpecsModal({ isOpen, onClose, productKey, product
         setSpecs(specsArray);
       } else {
         setSpecs([]);
+      }
+      
+      // Récupérer la date de mise à jour
+      const allSpecs = listAllSpecs();
+      if (allSpecs[productKey]?.updatedAt) {
+        setUpdatedAt(allSpecs[productKey].updatedAt);
       }
     } catch (err) {
       console.error('Error loading specs:', err);
@@ -118,12 +125,10 @@ export default function ProductSpecsModal({ isOpen, onClose, productKey, product
                 </div>
 
                 {/* Date de mise à jour si disponible */}
-                {specs.updatedAt && (
+                {updatedAt && (
                   <div className="mt-4 text-xs text-gray-500">
                     {lang === 'fr' ? 'Dernière mise à jour' : 'Last updated'}: {
-                      specs.updatedAt ? 
-                        new Date(specs.updatedAt).toLocaleDateString('fr-FR') :
-                        '—'
+                      new Date(updatedAt).toLocaleDateString('fr-FR')
                     }
                   </div>
                 )}
