@@ -122,21 +122,6 @@
           </div>
         </div>
 
-        <!-- Infos bancaires (facultatif) -->
-        <div class="mt-4">
-          <label class="inline-flex items-center gap-2 text-sm">
-            <input type="checkbox" id="toggleBank" />
-            <span data-i18n="bank.add">Ajouter infos bancaires (facultatif)</span>
-          </label>
-          <div id="bankBox" class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 hide">
-            <input type="text" id="bankName" class="border p-2 rounded" placeholder="Bank name" />
-            <input type="text" id="bankBranch" class="border p-2 rounded" placeholder="Branch / Address" />
-            <input type="text" id="bankBenef" class="border p-2 rounded" placeholder="Beneficiary name" />
-            <input type="text" id="bankIban" class="border p-2 rounded" placeholder="IBAN / Account No." />
-            <input type="text" id="bankSwift" class="border p-2 rounded" placeholder="SWIFT/BIC" />
-            <input type="text" id="bankNote" class="border p-2 rounded" placeholder="Note (optional)" />
-          </div>
-        </div>
       </div>
     </div>
 
@@ -207,10 +192,74 @@
       </button>
     </div>
 
-    <!-- Notes -->
+    <!-- Shipment / Transport maritime (optionnel) -->
+    <div class="mt-4 bg-blue-50 p-4 rounded border">
+      <label class="inline-flex items-center gap-2 text-sm font-semibold mb-3">
+        <input type="checkbox" id="toggleShipment" />
+        <span>🚢 Ajouter détails du Transport maritime (optionnel)</span>
+      </label>
+      <div id="shipmentBox" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 hide">
+        <input type="text" id="vessel" class="border p-2 rounded" placeholder="Navire (Vessel)" />
+        <input type="text" id="voyNo" class="border p-2 rounded" placeholder="Voy. No" />
+        <input type="text" id="billOfLading" class="border p-2 rounded" placeholder="Bill of Landing No" />
+        <input type="text" id="contract" class="border p-2 rounded" placeholder="Contrat" />
+        <input type="text" id="taric" class="border p-2 rounded" placeholder="TARIC" />
+        <input type="text" id="consignee" class="border p-2 rounded" placeholder="Nom du destinataire" />
+        <input type="number" id="containerCount" class="border p-2 rounded" placeholder="Nombre de conteneurs" min="0" />
+        <textarea id="containerDetails" class="border p-2 rounded col-span-2" rows="2" placeholder="Quantité dans chaque conteneur (ex: Conteneur 1: 20 MT, Conteneur 2: 18 MT...)"></textarea>
+      </div>
+    </div>
+
+    <!-- Notes en format liste -->
     <div class="mt-4">
-      <label class="block font-semibold mb-1" data-i18n="notes.title">📝 Notes supplémentaires</label>
-      <textarea id="notes" class="w-full border p-2 rounded" rows="3" placeholder="Ex: Emballage spécial, inspection SGS, etc."></textarea>
+      <div class="flex justify-between items-center mb-2">
+        <label class="block font-semibold" data-i18n="notes.title">📝 Notes supplémentaires</label>
+        <button type="button" id="addNoteBtn" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded">+ Ajouter</button>
+      </div>
+      <div id="notesList" class="space-y-2">
+        <!-- Items de notes seront ajoutés ici dynamiquement -->
+      </div>
+    </div>
+
+    <!-- Infos bancaires (section séparée après conteneurs) -->
+    <div class="mt-4 bg-gray-50 p-4 rounded border">
+      <label class="inline-flex items-center gap-2 text-sm font-semibold mb-3">
+        <input type="checkbox" id="toggleBank" />
+        <span data-i18n="bank.add">💳 Ajouter infos bancaires (facultatif)</span>
+      </label>
+      <div id="bankBox" class="grid grid-cols-1 md:grid-cols-2 gap-3 hide">
+        <input type="text" id="bankName" class="border p-2 rounded" placeholder="Bank name" />
+        <input type="text" id="bankBranch" class="border p-2 rounded" placeholder="Branch / Address" />
+        <input type="text" id="bankBenef" class="border p-2 rounded" placeholder="Beneficiary name" />
+        <input type="text" id="bankIban" class="border p-2 rounded" placeholder="IBAN / Account No." />
+        <input type="text" id="bankSwift" class="border p-2 rounded" placeholder="SWIFT/BIC" />
+        <input type="text" id="bankNote" class="border p-2 rounded" placeholder="Note (optional)" />
+      </div>
+    </div>
+
+    <!-- Acompte / Prepayment -->
+    <div class="mt-4 bg-green-50 p-4 rounded border">
+      <label class="inline-flex items-center gap-2 text-sm font-semibold mb-3">
+        <input type="checkbox" id="togglePrepayment" />
+        <span>💰 Ajouter acompte/prépaiment (optionnel)</span>
+      </label>
+      <div id="prepaymentBox" class="hide">
+        <input type="number" id="prepaymentAmount" class="border p-2 rounded w-full" placeholder="Montant de l'acompte" step="0.01" min="0" />
+        <p class="text-xs text-gray-600 mt-1">Le montant sera déduit du total à la fin du calcul</p>
+      </div>
+    </div>
+
+    <!-- Sauvegarde/Load -->
+    <div class="mt-4 flex gap-3">
+      <button type="button" id="saveBtn" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded shadow text-sm">
+        💾 Sauvegarder
+      </button>
+      <button type="button" id="loadBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow text-sm">
+        📂 Charger sauvegarde
+      </button>
+      <select id="savedList" class="border p-2 rounded text-sm">
+        <option value="">Choisir une sauvegarde...</option>
+      </select>
     </div>
 
     <!-- Actions -->
@@ -250,17 +299,6 @@
         <p><strong>Tel:</strong> <span id="doc-seller-phone">+1 819 319 8464</span></p>
         <p><strong>Email:</strong> <span id="doc-seller-email">abdou.lo@senharvestllc.com</span></p>
         <p><strong>RC/Tax ID:</strong> <span id="doc-seller-tax">SN-DK-XXXXXXX</span></p>
-
-        <!-- Infos bancaires (affichage si rempli) -->
-        <div id="doc-bank" class="mt-3 hidden">
-          <h4 class="font-semibold text-sm mb-1" data-i18n="bank.title">Bank Details</h4>
-          <p><strong data-i18n="bank.name">Bank</strong>: <span id="doc-bank-name"></span></p>
-          <p><strong data-i18n="bank.branch">Branch</strong>: <span id="doc-bank-branch"></span></p>
-          <p><strong data-i18n="bank.benef">Beneficiary</strong>: <span id="doc-bank-benef"></span></p>
-          <p><strong data-i18n="bank.iban">IBAN/Account</strong>: <span id="doc-bank-iban"></span></p>
-          <p><strong data-i18n="bank.swift">SWIFT</strong>: <span id="doc-bank-swift"></span></p>
-          <p class="text-xs"><span id="doc-bank-note"></span></p>
-        </div>
       </div>
 
       <!-- Acheteur -->
@@ -312,18 +350,50 @@
       <tbody id="doc-products-body"></tbody>
     </table>
 
+    <!-- Shipment / Transport maritime -->
+    <div id="doc-shipment" class="mt-4 mb-4 bg-blue-50 p-4 rounded border avoid-break hidden">
+      <h3 class="font-semibold text-blue-800 mb-3">🚢 SHIPMENT / TRANSPORT MARITIME</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+        <p><strong>Vessel:</strong> <span id="doc-vessel"></span></p>
+        <p><strong>Voy. No:</strong> <span id="doc-voy-no"></span></p>
+        <p><strong>Bill of Landing No:</strong> <span id="doc-bill-of-lading"></span></p>
+        <p><strong>Contrat:</strong> <span id="doc-contract"></span></p>
+        <p><strong>TARIC:</strong> <span id="doc-taric"></span></p>
+        <p><strong>Consignee:</strong> <span id="doc-consignee"></span></p>
+        <p><strong>Number of Containers:</strong> <span id="doc-container-count"></span></p>
+      </div>
+      <p class="text-sm mt-2"><strong>Container Details:</strong> <span id="doc-container-details"></span></p>
+    </div>
+
+    <!-- Infos bancaires (après conteneurs) -->
+    <div id="doc-bank" class="mt-4 mb-4 bg-gray-50 p-4 rounded border avoid-break hidden">
+      <h3 class="font-semibold text-gray-800 mb-3" data-i18n="bank.title">💳 BANK DETAILS</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+        <p><strong data-i18n="bank.name">Bank</strong>: <span id="doc-bank-name"></span></p>
+        <p><strong data-i18n="bank.branch">Branch</strong>: <span id="doc-bank-branch"></span></p>
+        <p><strong data-i18n="bank.benef">Beneficiary</strong>: <span id="doc-bank-benef"></span></p>
+        <p><strong data-i18n="bank.iban">IBAN/Account</strong>: <span id="doc-bank-iban"></span></p>
+        <p><strong data-i18n="bank.swift">SWIFT</strong>: <span id="doc-bank-swift"></span></p>
+        <p class="text-xs"><span id="doc-bank-note"></span></p>
+      </div>
+    </div>
+
     <!-- Totaux -->
     <div class="text-right mb-6 avoid-break" id="totalsBox">
       <p><span class="font-semibold" data-i18n="totals.subtotal">Subtotal</span>: <span id="doc-subtotal">0</span> <span id="doc-cur">USD</span></p>
       <p class="hide" id="row-discount"><span class="font-semibold" data-i18n="totals.discount">Discount</span>: -<span id="doc-discount">0</span> <span id="doc-cur2">USD</span></p>
       <p class="hide" id="row-tax"><span class="font-semibold" data-i18n="totals.tax">Tax</span>: <span id="doc-tax">0</span> <span id="doc-cur3">USD</span></p>
+      <p class="hide" id="row-prepayment"><span class="font-semibold">Prepayment / Acompte</span>: -<span id="doc-prepayment">0</span> <span id="doc-cur-prep">USD</span></p>
       <p class="text-lg font-semibold"><span data-i18n="totals.grand">Grand Total</span>: <span id="doc-grand">0</span> <span id="doc-cur4">USD</span></p>
+      <p class="hide text-sm text-green-700 font-semibold" id="row-balance"><span>Balance Due / Reste à payer</span>: <span id="doc-balance">0</span> <span id="doc-cur-balance">USD</span></p>
     </div>
 
     <!-- Notes -->
     <div class="bg-yellow-50 p-4 rounded border mb-6 avoid-break">
       <h3 class="font-semibold text-yellow-800 mb-2" data-i18n="notes.block">NOTES & ADDITIONAL DETAILS</h3>
-      <p class="text-sm" id="doc-notes">-</p>
+      <ul class="text-sm list-disc list-inside space-y-1" id="doc-notes-list">
+        <!-- Notes en format liste -->
+      </ul>
       <p class="text-xs mt-2"><span data-i18n="doc.valid">This offer is valid for</span> <span id="doc-validity"></span> <span data-i18n="doc.days">days</span>.</p>
     </div>
 
@@ -572,18 +642,64 @@
       const discountVal = subtotal * (discountPct/100);
       const afterDisc = subtotal - discountVal;
       const taxVal = afterDisc * (taxPct/100);
-      const grand = afterDisc + taxVal;
+      const beforePrepayment = afterDisc + taxVal;
+      
+      // Gestion de l'acompte
+      const prepaymentAmount = parseFloat(document.getElementById('prepaymentAmount').value) || 0;
+      const hasPrepayment = document.getElementById('togglePrepayment').checked && prepaymentAmount > 0;
+      const grand = beforePrepayment;
+      const balance = hasPrepayment ? (grand - prepaymentAmount) : grand;
+      
       document.getElementById('doc-subtotal').textContent = money(subtotal);
       const rowDiscount = document.getElementById('row-discount');
       const rowTax = document.getElementById('row-tax');
+      const rowPrepayment = document.getElementById('row-prepayment');
+      const rowBalance = document.getElementById('row-balance');
+      
       rowDiscount.classList.toggle('hide', !(discountPct>0));
       rowTax.classList.toggle('hide', !(taxPct>0));
+      rowPrepayment.classList.toggle('hide', !hasPrepayment);
+      rowBalance.classList.toggle('hide', !hasPrepayment);
+      
       document.getElementById('doc-discount').textContent = money(discountVal);
       document.getElementById('doc-tax').textContent = money(taxVal);
+      document.getElementById('doc-prepayment').textContent = money(prepaymentAmount);
       document.getElementById('doc-grand').textContent = money(grand);
-      const notes = document.getElementById('notes').value;
-      document.getElementById('doc-notes').textContent = notes || (document.getElementById('lang').value==='fr' ? 'Aucune note additionnelle.' : 'No additional notes.');
+      document.getElementById('doc-balance').textContent = money(balance);
+      document.querySelectorAll('#doc-cur-prep,#doc-cur-balance').forEach(el => el.textContent = cur);
+      
+      // Notes en format liste
+      const notesListEl = document.getElementById('doc-notes-list');
+      notesListEl.innerHTML = '';
+      if (notesItems.length === 0) {
+        notesListEl.innerHTML = '<li class="text-gray-500">Aucune note additionnelle.</li>';
+      } else {
+        notesItems.forEach(note => {
+          if (note.trim()) {
+            const li = document.createElement('li');
+            li.textContent = note;
+            notesListEl.appendChild(li);
+          }
+        });
+      }
       document.getElementById('doc-validity').textContent = document.getElementById('validity').value || '30';
+      
+      // Shipment / Transport maritime
+      const showShipment = document.getElementById('toggleShipment').checked;
+      const shipmentEl = document.getElementById('doc-shipment');
+      if (showShipment) {
+        shipmentEl.classList.remove('hidden');
+        document.getElementById('doc-vessel').textContent = document.getElementById('vessel').value || '-';
+        document.getElementById('doc-voy-no').textContent = document.getElementById('voyNo').value || '-';
+        document.getElementById('doc-bill-of-lading').textContent = document.getElementById('billOfLading').value || '-';
+        document.getElementById('doc-contract').textContent = document.getElementById('contract').value || '-';
+        document.getElementById('doc-taric').textContent = document.getElementById('taric').value || '-';
+        document.getElementById('doc-consignee').textContent = document.getElementById('consignee').value || '-';
+        document.getElementById('doc-container-count').textContent = document.getElementById('containerCount').value || '-';
+        document.getElementById('doc-container-details').textContent = document.getElementById('containerDetails').value || '-';
+      } else {
+        shipmentEl.classList.add('hidden');
+      }
       const showBank = document.getElementById('toggleBank').checked;
       const bVals = {
         bankName: document.getElementById('bankName').value.trim(),
@@ -730,6 +846,242 @@
       document.getElementById('toggleBank').addEventListener('change', (e)=>{
         document.getElementById('bankBox').classList.toggle('hide', !e.target.checked);
       });
+      
+      document.getElementById('toggleShipment').addEventListener('change', (e)=>{
+        document.getElementById('shipmentBox').classList.toggle('hide', !e.target.checked);
+      });
+      
+      document.getElementById('togglePrepayment').addEventListener('change', (e)=>{
+        document.getElementById('prepaymentBox').classList.toggle('hide', !e.target.checked);
+      });
+      
+      // Gestion des notes en liste
+      let notesItems = [];
+      function addNoteItem(value = ''){
+        const idx = notesItems.length;
+        notesItems.push(value);
+        renderNotesList();
+      }
+      function removeNoteItem(idx){
+        notesItems.splice(idx, 1);
+        renderNotesList();
+      }
+      function updateNoteItem(idx, value){
+        notesItems[idx] = value;
+      }
+      function renderNotesList(){
+        const container = document.getElementById('notesList');
+        container.innerHTML = '';
+        notesItems.forEach((note, idx) => {
+          const div = document.createElement('div');
+          div.className = 'flex gap-2 items-center';
+          div.innerHTML = `
+            <input type="text" class="flex-1 border p-2 rounded text-sm note-item" 
+                   value="${note}" 
+                   placeholder="Note..." 
+                   data-idx="${idx}" />
+            <button type="button" class="text-red-600 text-sm del-note" data-idx="${idx}">×</button>
+          `;
+          container.appendChild(div);
+        });
+        if (notesItems.length === 0) {
+          container.innerHTML = '<p class="text-sm text-gray-500">Aucune note. Cliquez sur "Ajouter" pour en ajouter.</p>';
+        } else {
+          container.querySelectorAll('.note-item').forEach(inp => {
+            inp.addEventListener('input', (e) => {
+              const idx = parseInt(e.target.dataset.idx);
+              updateNoteItem(idx, e.target.value);
+            });
+          });
+          container.querySelectorAll('.del-note').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const idx = parseInt(e.target.dataset.idx);
+              removeNoteItem(idx);
+            });
+          });
+        }
+      }
+      document.getElementById('addNoteBtn').addEventListener('click', () => addNoteItem());
+      
+      // Sauvegarde / Chargement
+      const LS_KEY = 'proforma_saved_data';
+      function saveFormData(){
+        const data = {
+          ref: document.getElementById('ref').value,
+          issueDate: document.getElementById('issueDate').value,
+          docType: document.getElementById('docType').value,
+          currency: document.getElementById('currency').value,
+          validity: document.getElementById('validity').value,
+          companyLogo: document.getElementById('companyLogo').value,
+          buyerName: document.getElementById('buyerName').value,
+          buyerCorp: document.getElementById('buyerCorp').value,
+          buyerAddress: document.getElementById('buyerAddress').value,
+          buyerPhone: document.getElementById('buyerPhone').value,
+          buyerEmail: document.getElementById('buyerEmail').value,
+          buyerTax: document.getElementById('buyerTax').value,
+          buyerContact: document.getElementById('buyerContact').value,
+          sellerCorp: document.getElementById('sellerCorp').value,
+          sellerAddress: document.getElementById('sellerAddress').value,
+          sellerPhone: document.getElementById('sellerPhone').value,
+          sellerEmail: document.getElementById('sellerEmail').value,
+          sellerTax: document.getElementById('sellerTax').value,
+          sellerSignName: document.getElementById('sellerSignName').value,
+          origin: document.getElementById('origin').value,
+          destination: document.getElementById('destination').value,
+          portLoading: document.getElementById('portLoading').value,
+          incoterm: document.getElementById('incoterm').value,
+          paymentMethod: document.getElementById('paymentMethod').value,
+          paymentTerms: document.getElementById('paymentTerms').value,
+          discount: document.getElementById('discount').value,
+          tax: document.getElementById('tax').value,
+          insurance: document.getElementById('insurance').value,
+          inspection: document.getElementById('inspection').value,
+          toggleBank: document.getElementById('toggleBank').checked,
+          bankName: document.getElementById('bankName').value,
+          bankBranch: document.getElementById('bankBranch').value,
+          bankBenef: document.getElementById('bankBenef').value,
+          bankIban: document.getElementById('bankIban').value,
+          bankSwift: document.getElementById('bankSwift').value,
+          bankNote: document.getElementById('bankNote').value,
+          toggleShipment: document.getElementById('toggleShipment').checked,
+          vessel: document.getElementById('vessel').value,
+          voyNo: document.getElementById('voyNo').value,
+          billOfLading: document.getElementById('billOfLading').value,
+          contract: document.getElementById('contract').value,
+          taric: document.getElementById('taric').value,
+          consignee: document.getElementById('consignee').value,
+          containerCount: document.getElementById('containerCount').value,
+          containerDetails: document.getElementById('containerDetails').value,
+          togglePrepayment: document.getElementById('togglePrepayment').checked,
+          prepaymentAmount: document.getElementById('prepaymentAmount').value,
+          notes: notesItems,
+          products: []
+        };
+        
+        // Sauvegarder produits
+        [...tbody().rows].forEach(row => {
+          data.products.push({
+            name: row.querySelector('.prod-name')?.value || '',
+            grade: row.querySelector('.prod-grade')?.value || '',
+            qty: row.querySelector('.prod-qty')?.value || '',
+            unit: row.querySelector('.prod-unit')?.value || '',
+            hs: row.querySelector('.prod-hs')?.value || '',
+            weights: row.querySelector('.prod-weights')?.value || '',
+            pack: row.querySelector('.prod-pack')?.value || '',
+            ctr: row.querySelector('.prod-ctr')?.value || '',
+            price: row.querySelector('.prod-price')?.value || ''
+          });
+        });
+        
+        const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        const name = prompt('Nom de la sauvegarde:', data.buyerCorp || `Proforma ${data.ref}`);
+        if (name) {
+          saved.push({
+            name,
+            date: new Date().toISOString(),
+            data
+          });
+          localStorage.setItem(LS_KEY, JSON.stringify(saved));
+          updateSavedList();
+          alert('Sauvegarde effectuée avec succès!');
+        }
+      }
+      
+      function loadFormData(savedItem){
+        if (!savedItem || !savedItem.data) return;
+        const d = savedItem.data;
+        
+        document.getElementById('ref').value = d.ref || '';
+        document.getElementById('issueDate').value = d.issueDate || '';
+        document.getElementById('docType').value = d.docType || 'proforma';
+        document.getElementById('currency').value = d.currency || 'USD';
+        document.getElementById('validity').value = d.validity || '30';
+        document.getElementById('companyLogo').value = d.companyLogo || '';
+        document.getElementById('buyerName').value = d.buyerName || '';
+        document.getElementById('buyerCorp').value = d.buyerCorp || '';
+        document.getElementById('buyerAddress').value = d.buyerAddress || '';
+        document.getElementById('buyerPhone').value = d.buyerPhone || '';
+        document.getElementById('buyerEmail').value = d.buyerEmail || '';
+        document.getElementById('buyerTax').value = d.buyerTax || '';
+        document.getElementById('buyerContact').value = d.buyerContact || '';
+        document.getElementById('sellerCorp').value = d.sellerCorp || '';
+        document.getElementById('sellerAddress').value = d.sellerAddress || '';
+        document.getElementById('sellerPhone').value = d.sellerPhone || '';
+        document.getElementById('sellerEmail').value = d.sellerEmail || '';
+        document.getElementById('sellerTax').value = d.sellerTax || '';
+        document.getElementById('sellerSignName').value = d.sellerSignName || '';
+        document.getElementById('origin').value = d.origin || '';
+        document.getElementById('destination').value = d.destination || '';
+        document.getElementById('portLoading').value = d.portLoading || '';
+        document.getElementById('incoterm').value = d.incoterm || '';
+        document.getElementById('paymentMethod').value = d.paymentMethod || '';
+        document.getElementById('paymentTerms').value = d.paymentTerms || '';
+        document.getElementById('discount').value = d.discount || '';
+        document.getElementById('tax').value = d.tax || '';
+        document.getElementById('insurance').value = d.insurance || '';
+        document.getElementById('inspection').value = d.inspection || '';
+        document.getElementById('toggleBank').checked = d.toggleBank || false;
+        document.getElementById('bankBox').classList.toggle('hide', !d.toggleBank);
+        document.getElementById('bankName').value = d.bankName || '';
+        document.getElementById('bankBranch').value = d.bankBranch || '';
+        document.getElementById('bankBenef').value = d.bankBenef || '';
+        document.getElementById('bankIban').value = d.bankIban || '';
+        document.getElementById('bankSwift').value = d.bankSwift || '';
+        document.getElementById('bankNote').value = d.bankNote || '';
+        document.getElementById('toggleShipment').checked = d.toggleShipment || false;
+        document.getElementById('shipmentBox').classList.toggle('hide', !d.toggleShipment);
+        document.getElementById('vessel').value = d.vessel || '';
+        document.getElementById('voyNo').value = d.voyNo || '';
+        document.getElementById('billOfLading').value = d.billOfLading || '';
+        document.getElementById('contract').value = d.contract || '';
+        document.getElementById('taric').value = d.taric || '';
+        document.getElementById('consignee').value = d.consignee || '';
+        document.getElementById('containerCount').value = d.containerCount || '';
+        document.getElementById('containerDetails').value = d.containerDetails || '';
+        document.getElementById('togglePrepayment').checked = d.togglePrepayment || false;
+        document.getElementById('prepaymentBox').classList.toggle('hide', !d.togglePrepayment);
+        document.getElementById('prepaymentAmount').value = d.prepaymentAmount || '';
+        
+        notesItems = d.notes || [];
+        renderNotesList();
+        
+        tbody().innerHTML = '';
+        (d.products || []).forEach(p => addRow(p));
+        
+        // Mettre à jour référence si besoin
+        if (d.docType) {
+          document.getElementById('ref').value = generateRef();
+        }
+      }
+      
+      function updateSavedList(){
+        const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        const select = document.getElementById('savedList');
+        select.innerHTML = '<option value="">Choisir une sauvegarde...</option>';
+        saved.reverse().forEach((item, idx) => {
+          const opt = document.createElement('option');
+          opt.value = idx;
+          opt.textContent = `${item.name} (${new Date(item.date).toLocaleDateString()})`;
+          select.appendChild(opt);
+        });
+      }
+      
+      document.getElementById('saveBtn').addEventListener('click', saveFormData);
+      document.getElementById('loadBtn').addEventListener('click', () => {
+        const select = document.getElementById('savedList');
+        const idx = parseInt(select.value);
+        if (!isNaN(idx)) {
+          const saved = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+          const reversed = [...saved].reverse();
+          if (reversed[idx]) {
+            loadFormData(reversed[idx]);
+            alert('Données chargées avec succès!');
+          }
+        }
+      });
+      
+      // Charger la liste au démarrage
+      updateSavedList();
     }
     
     if (document.readyState === 'loading') {
