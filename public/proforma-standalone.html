@@ -413,8 +413,8 @@
         <p class="font-semibold mb-0.5" data-i18n="sign.buyer">Authorized Signature – Buyer</p>
         <div class="signature-line"></div>
         <div class="mt-0.5 text-left ml-4">
-          <p class="text-sm leading-tight mb-0"><strong>Name:</strong> <span id="doc-buyer-sign-name"></span></p>
-          <p class="text-sm leading-tight mt-0"><strong>Fonction:</strong> <span id="doc-buyer-sign-position"></span></p>
+          <p class="text-sm leading-tight mb-0"><strong>Name:</strong> _____________________</p>
+          <p class="text-sm leading-tight mt-0"><strong>Fonction:</strong> _____________________</p>
         </div>
       </div>
     </div>
@@ -599,9 +599,7 @@
       document.getElementById('doc-buyer-email').textContent = document.getElementById('buyerEmail').value || '-';
       document.getElementById('doc-buyer-tax').textContent = document.getElementById('buyerTax').value || '-';
       document.getElementById('doc-buyer-contact').textContent = document.getElementById('buyerContact').value || '-';
-      // Signature buyer (optionnel, peut rester vide)
-      document.getElementById('doc-buyer-sign-name').textContent = document.getElementById('buyerSignName').value || '';
-      document.getElementById('doc-buyer-sign-position').textContent = document.getElementById('buyerSignPosition').value || '';
+      // Signature buyer : maintenant statique avec des lignes vides à remplir manuellement
       document.getElementById('doc-origin').textContent = document.getElementById('origin').value || '-';
       document.getElementById('doc-destination').textContent = document.getElementById('destination').value || '-';
       document.getElementById('doc-incoterm').textContent = document.getElementById('incoterm').value || '-';
