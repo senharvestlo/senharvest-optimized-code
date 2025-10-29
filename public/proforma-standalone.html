@@ -480,6 +480,9 @@
       });
     }
 
+    // ===== Variables globales =====
+    let notesItems = []; // Pour gérer les notes en format liste
+
     // ===== Utils =====
     function generateRef(){
       const docType = document.getElementById('docType').value;
@@ -856,7 +859,6 @@
       });
       
       // Gestion des notes en liste
-      let notesItems = [];
       function addNoteItem(value = ''){
         const idx = notesItems.length;
         notesItems.push(value);
