@@ -103,6 +103,10 @@
             <input type="text" placeholder="Tax ID / VAT (optionnel)" id="buyerTax" class="w-full border p-2 rounded" />
             <input type="text" placeholder="Contact (optionnel)" id="buyerContact" class="w-full border p-2 rounded" />
           </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 pt-3 border-t">
+            <input type="text" placeholder="Nom du signataire (optionnel)" id="buyerSignName" class="w-full border p-2 rounded" />
+            <input type="text" placeholder="Fonction du signataire (optionnel)" id="buyerSignPosition" class="w-full border p-2 rounded" />
+          </div>
         </div>
       </div>
 
@@ -408,8 +412,8 @@
       <div id="buyer-signature-block">
         <p class="font-semibold" data-i18n="sign.buyer">Authorized Signature – Buyer</p>
         <div class="signature-line"></div>
-        <p id="doc-buyer-sign-name">[Buyer Name]</p>
-        <p class="text-sm muted" data-i18n="sign.position">Position: [Position]</p>
+        <p><strong>Name:</strong> <span id="doc-buyer-sign-name"></span></p>
+        <p class="text-sm muted"><strong>Fonction:</strong> <span id="doc-buyer-sign-position"></span></p>
       </div>
     </div>
 
@@ -593,6 +597,9 @@
       document.getElementById('doc-buyer-email').textContent = document.getElementById('buyerEmail').value || '-';
       document.getElementById('doc-buyer-tax').textContent = document.getElementById('buyerTax').value || '-';
       document.getElementById('doc-buyer-contact').textContent = document.getElementById('buyerContact').value || '-';
+      // Signature buyer (optionnel, peut rester vide)
+      document.getElementById('doc-buyer-sign-name').textContent = document.getElementById('buyerSignName').value || '';
+      document.getElementById('doc-buyer-sign-position').textContent = document.getElementById('buyerSignPosition').value || '';
       document.getElementById('doc-origin').textContent = document.getElementById('origin').value || '-';
       document.getElementById('doc-destination').textContent = document.getElementById('destination').value || '-';
       document.getElementById('doc-incoterm').textContent = document.getElementById('incoterm').value || '-';
@@ -922,6 +929,8 @@
           buyerEmail: document.getElementById('buyerEmail').value,
           buyerTax: document.getElementById('buyerTax').value,
           buyerContact: document.getElementById('buyerContact').value,
+          buyerSignName: document.getElementById('buyerSignName').value,
+          buyerSignPosition: document.getElementById('buyerSignPosition').value,
           sellerCorp: document.getElementById('sellerCorp').value,
           sellerAddress: document.getElementById('sellerAddress').value,
           sellerPhone: document.getElementById('sellerPhone').value,
@@ -1006,6 +1015,8 @@
         document.getElementById('buyerEmail').value = d.buyerEmail || '';
         document.getElementById('buyerTax').value = d.buyerTax || '';
         document.getElementById('buyerContact').value = d.buyerContact || '';
+        document.getElementById('buyerSignName').value = d.buyerSignName || '';
+        document.getElementById('buyerSignPosition').value = d.buyerSignPosition || '';
         document.getElementById('sellerCorp').value = d.sellerCorp || '';
         document.getElementById('sellerAddress').value = d.sellerAddress || '';
         document.getElementById('sellerPhone').value = d.sellerPhone || '';
