@@ -29,7 +29,7 @@ Le déploiement inclut EmailJS, mais **il faut configurer les variables d'enviro
 
 2. Ajouter ces 3 variables :
    ```
-   REACT_APP_EMAILJS_SERVICE_ID = service_pntmtmn
+   REACT_APP_EMAILJS_SERVICE_ID = service_ykhg5ox
    REACT_APP_EMAILJS_TEMPLATE_ID = template_1sh586m
    REACT_APP_EMAILJS_PUBLIC_KEY = oa2dvrH8lCJf974vD
    ```

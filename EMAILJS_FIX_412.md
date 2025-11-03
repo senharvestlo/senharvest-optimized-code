@@ -38,7 +38,7 @@ to_name        // Nom du destinataire
 
 #### **Configuration du Template :**
 
-**Service ID :** `service_pntmtmn`  
+**Service ID :** `service_ykhg5ox`  
 **Template ID :** `template_1sh586m`
 
 **From (De) :**
@@ -125,7 +125,7 @@ console.log({
 Doit afficher :
 ```
 {
-  SERVICE: "service_pntmtmn",
+  SERVICE: "service_ykhg5ox",
   TEMPLATE: "template_1sh586m",
   PUBLIC_KEY: "oa2dvrH8lCJf974vD"
 }
@@ -148,7 +148,7 @@ npm run deploy
 Si l'erreur persiste :
 1. Aller sur https://dashboard.emailjs.com/support
 2. Créer un ticket avec :
-   - Service ID: `service_pntmtmn`
+   - Service ID: `service_ykhg5ox`
    - Template ID: `template_1sh586m`
    - Erreur: 412
    - Code utilisé dans `src/services/contacts.js`
