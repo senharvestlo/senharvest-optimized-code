@@ -5,9 +5,9 @@
 import emailjs from '@emailjs/browser';
 
 // Configuration EmailJS
-const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_senharvest';
-const EMAILJS_TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID || 'template_senharvest';
-const EMAILJS_PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || '';
+const EMAILJS_SERVICE_ID = process.env.REACT_APP_EMAILJS_SERVICE_ID || 'service_ykhg5ox';
+const EMAILJS_TEMPLATE_ID = process.env.REACT_APP_EMAILJS_TEMPLATE_ID || 'template_1sh586m';
+const EMAILJS_PUBLIC_KEY = process.env.REACT_APP_EMAILJS_PUBLIC_KEY || 'oa2dvrH8lCJf974vD';
 
 /**
  * Sauvegarde une demande de contact et envoie un email
@@ -19,6 +19,7 @@ export async function saveContactRequest(payload) {
   
   try {
     // Préparer les données pour EmailJS
+    // 🔥 EmailJS requires SPECIFIC variable names
     const emailData = {
       from_name: payload.name || 'Utilisateur anonyme',
       from_email: payload.email || '',
@@ -29,8 +30,6 @@ export async function saveContactRequest(payload) {
       incoterm: payload.incoterm || '',
       payment: payload.payment || '',
       message: payload.message || '',
-      to_email: 'manager@senharvest.com',
-      to_name: 'Manager SenHarvest',
     };
 
     // Envoyer via EmailJS
